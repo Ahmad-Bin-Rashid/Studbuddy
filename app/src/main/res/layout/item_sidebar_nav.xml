@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/sidebar_item_height"
+    android:background="@drawable/sidebar_item_background"
+    android:gravity="center_vertical"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/sidebar_item_padding_h"
+    android:paddingEnd="@dimen/sidebar_item_padding_h">
+
+    <View
+        android:id="@+id/viewActiveIndicator"
+        android:layout_width="4dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:background="@color/colorSidebarItemActive"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/textViewNavLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/colorSidebarItem"
+        android:textSize="@dimen/text_size_subtitle" />
+
+</LinearLayout>

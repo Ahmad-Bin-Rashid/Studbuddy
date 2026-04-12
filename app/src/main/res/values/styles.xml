@@ -1,0 +1,32 @@
+<resources>
+    <style name="Theme.StudBuddy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
+    </style>
+
+    <style name="Style.StudBuddy.Toolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="titleTextColor">@color/colorTextOnPrimary</item>
+        <item name="android:layout_height">@dimen/toolbar_height</item>
+    </style>
+
+    <style name="Style.StudBuddy.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">@dimen/card_elevation</item>
+        <item name="cardBackgroundColor">@color/colorCardBackground</item>
+        <item name="contentPaddingLeft">@dimen/card_padding</item>
+        <item name="contentPaddingRight">@dimen/card_padding</item>
+        <item name="contentPaddingTop">@dimen/card_padding</item>
+        <item name="contentPaddingBottom">@dimen/card_padding</item>
+    </style>
+
+    <style name="Style.StudBuddy.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorTextOnPrimary</item>
+        <item name="cornerRadius">@dimen/card_corner_radius</item>
+    </style>
+</resources>

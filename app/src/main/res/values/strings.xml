@@ -1,3 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Studbuddy</string>
+    <string name="app_name">StudBuddy</string>
+    <string name="nav_timetable">Timetable</string>
+    <string name="nav_assignments">Assignments</string>
+    <string name="nav_attendance">Attendance</string>
+    <string name="nav_exams">Exams</string>
+    <string name="nav_gpa">GPA Calculator</string>
+    <string name="nav_settings">Settings</string>
+    <string name="dashboard_greeting">Welcome back!</string>
+    <string name="dashboard_subtitle">What would you like to manage today?</string>
+    <string name="btn_open_menu">Open menu</string>
+    <string name="btn_close_menu">Close menu</string>
+    <string name="content_description_menu">Navigation menu</string>
+    <string name="content_description_back">Go back</string>
 </resources>
