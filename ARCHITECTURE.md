@@ -1,4 +1,4 @@
-# FILE: ARCHITECTURE.md
+# ARCHITECTURE.md
 
 # StudBuddy — System Architecture
 
@@ -6,19 +6,19 @@
 
 ## 1. Architecture Overview
 
-StudBuddy uses a flat **Activity-based architecture** with a centralized data layer. There are no Fragments, no ViewModels, and no LiveData. All state is managed explicitly inside Activities with data sourced exclusively from `AppDataStore`.
+StudBuddy uses a **Modular Activity-based architecture** centered around a shared data layer. Navigation is implemented using a **Custom Overlay Sidebar** (using `ConstraintLayout`, `CardView`, and `LinearLayout`) accessible from all main module screens.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        UI Layer                             │
-│   MainActivity  TimetableActivity  AssignmentsActivity ...  │
+│   MainActivity (Dashboard) + Custom Overlay Sidebar         │
 │        ↕               ↕                  ↕                 │
-│    XML Layouts     RecyclerView        Dialogs              │
+│    CourseActivity  TimetableActivity  AttendanceActivity ...│
 └───────────────────────────┬─────────────────────────────────┘
                             │ read / write
 ┌───────────────────────────▼─────────────────────────────────┐
 │                     Data Layer                              │
-│              AppDataStore (in-memory + JSON)                │
+│              AppDataStore (JSON Persistence)                │
 │                        ↕                                    │
 │              SharedPrefManager (JSON strings)               │
 └─────────────────────────────────────────────────────────────┘
@@ -33,174 +33,80 @@ StudBuddy uses a flat **Activity-based architecture** with a centralized data la
 
 ## 2. Component Responsibilities
 
-### 2.1 MainActivity
+### 2.1 MainActivity (Home/Dashboard)
 
-- Entry point of the application.
-- Renders the home dashboard (navigation menu to each module).
-- Calls `AppDataStore.initialize(context)` on startup.
-- Does NOT own any module-specific data.
-- Navigates to module Activities via `Intent`.
+- **Entry Point**: Displays the Dashboard.
+- **Semester Management**: Handles first-time setup for semester details (dates, credit hours).
+- **Dashboard Logic**: Aggregates data from all modules:
+    - Current semester.
+    - Next lecture time and place (from Timetable, if < 1 day remaining).
+    - Short attendance alerts (from Attendance, if < threshold).
+    - Pending assignments (from Assignments).
+    - Next exam time and place (from Exams).
+    - Current semester expected GPA (from Courses/GPA).
+- **Navigation**: Hosts the custom sidebar logic.
 
-```kotlin
-// MainActivity.kt — navigation pattern
-val intent = Intent(this, TimetableActivity::class.java)
-startActivity(intent)
-```
+### 2.2 Navigation (Custom Sidebar)
 
-### 2.2 Module Activities
+- **Structure**:
+    - Top Menu Icon (trigger).
+    - Overlay Container: `CardView` + `ScrollView` + `LinearLayout`.
+    - Menu Items: Home, Courses, Attendance, Timetable, Assignments, Exams, GPA.
+    - Footer: Settings (separated).
+- **Implementation**: Manual visibility toggle (`View.VISIBLE`/`View.GONE`) and `Intent` navigation.
 
-Each module Activity is fully self-contained:
+### 2.3 Module Activities
 
-| Responsibility | Rule |
-|---|---|
-| Load data | Call `AppDataStore.get<Module>List()` in `onResume()` |
-| Display data | Bind to RecyclerView via module Adapter |
-| Mutate data | Call `AppDataStore.save<Module>()`, then `SharedPrefManager.sync()` |
-| Navigate | Use `Intent` only — no shared state between Activities |
-| Show dialogs | Use `LayoutInflater` pattern (see `DIALOG_PATTERNS.md`) |
+Modules are interconnected through the Course ID:
 
-### 2.3 AppDataStore
+| Module | Dependency | Responsibility |
+|---|---|---|
+| **Courses** | Semester | Manage courses (credit hours, instructor, marks, grades). |
+| **Attendance** | Courses | Track attendance per course, set threshold/weightage, and update course marks. |
+| **Timetable** | Courses | Manage weekly schedule (days, times, rooms) and upcoming lecture alerts. |
+| **Assignments** | Courses | Manage tasks (total/obtained marks, weightage) and update course marks. |
+| **Exams** | Courses | Track Quizzes/Midterms/Finals and update course marks. |
+| **GPA** | Courses | Calculate Semester GPA and track CGPA. |
 
-- **Single source of truth** for all application data.
-- Maintains in-memory lists for each data type.
-- Serializes/deserializes to JSON via Kotlin's `JSONObject`/`JSONArray`.
-- Delegates persistence to `SharedPrefManager`.
-- Thread: Main thread only — no coroutines, no background threads.
+### 2.4 AppDataStore & Storage
 
-### 2.4 SharedPrefManager
-
-- Wraps Android `SharedPreferences`.
-- Stores all data as JSON strings keyed by data type.
-- Never called directly from Activities — only from `AppDataStore`.
-
-### 2.5 Adapters
-
-- One Adapter class per module.
-- Uses `ViewHolder` pattern exclusively.
-- Receives a `MutableList<T>` and a lambda for click callbacks.
-- Contains zero business logic — only binding data to views.
-
-### 2.6 Notification System
-
-- `NotificationScheduler` — called by module Activities to schedule alarms.
-- `AlarmReceiver` — BroadcastReceiver that fires on alarm trigger.
-- `NotificationHelper` — builds and posts `NotificationCompat`.
-- See `NOTIFICATION_SYSTEM.md` for full contract.
+- **AppDataStore**: Single source of truth. Handles JSON serialization of objects (Semester, Course, etc.).
+- **SharedPrefManager**: Low-level persistence using `SharedPreferences`.
+- **Integration**: Changes in sub-modules (Attendance/Assignments/Exams) trigger mark recalculations in the `Course` entity, which updates the GPA.
 
 ---
 
-## 3. Data Flow Summary
+## 3. Data Flow: The "Course-Centric" Model
 
-```
-Activity.onResume()
-    → AppDataStore.get<Module>List()
-        → SharedPrefManager.getString(KEY)
-            → JSON deserialization
-        → returns List<Model>
-    → adapter.updateList(list)
-    → RecyclerView.notifyDataSetChanged()
-
-User Action (Add/Edit/Delete)
-    → Dialog collects input
-    → Activity validates input
-    → AppDataStore.save<Module>(item)
-        → updates in-memory list
-        → serializes to JSON
-        → SharedPrefManager.putString(KEY, json)
-    → adapter.notifyItemInserted(pos) / notifyItemChanged(pos) / notifyItemRemoved(pos)
-```
+1. **Initialization**: User adds Semester details on the Home screen.
+2. **Setup**: User adds Courses (ID is the primary key).
+3. **Activity**:
+    - **Assessments**: When an assignment/exam/attendance record is updated, the parent `Course.marks` is updated based on the specified weightage.
+4. **Finalization**: `Course.grade` and `Course.gradePoints` are updated when a grade is assigned (usually at semester end).
+5. **Output**: GPA module uses finalized Course data to calculate Semester GPA.
 
 ---
 
-## 4. Package Structure (Strict)
+## 4. UI/UX Standards
+
+- **Theme**: Dark and Light mode toggle in Settings.
+- **Alerts**: Color-coded cards (e.g., Red for short attendance) and Dashboard notifications.
+- **Navigation**: Overlay sidebar with consistent layout across all Activities.
+
+---
+
+## 5. Package Structure
 
 ```
 com.studbuddy/
-├── core/
-│   ├── AppDataStore.kt
-│   ├── SharedPrefManager.kt
-│   ├── MainActivity.kt
-│   └── models/
-│       ├── TimetableEntry.kt
-│       ├── Assignment.kt
-│       ├── AttendanceRecord.kt
-│       ├── Exam.kt
-│       └── Course.kt
-├── timetable/
-│   ├── TimetableActivity.kt
-│   └── TimetableAdapter.kt
-├── assignments/
-│   ├── AssignmentsActivity.kt
-│   └── AssignmentsAdapter.kt
-├── attendance/
-│   ├── AttendanceActivity.kt
-│   └── AttendanceAdapter.kt
-├── exams/
-│   ├── ExamsActivity.kt
-│   └── ExamsAdapter.kt
-├── gpa/
-│   ├── GpaActivity.kt
-│   └── GpaAdapter.kt
-└── notifications/
-    ├── NotificationHelper.kt
-    ├── AlarmReceiver.kt
-    └── NotificationScheduler.kt
+├── core/                ← Shared models, AppDataStore, SharedPrefManager
+├── home/                ← MainActivity, Dashboard logic
+├── courses/             ← Course management
+├── attendance/          ← Attendance tracking & weightage
+├── timetable/           ← Weekly schedule & reminders
+├── assignments/         ← Task tracking & grade integration
+├── exams/               ← Exam scheduling (Quiz/Mid/Final)
+├── gpa/                 ← GPA/CGPA calculations
+├── settings/            ← Theme (Light/Dark) toggle
+└── notifications/       ← AlarmManager & BroadcastReceiver
 ```
-
-### Package Ownership
-
-| Package | Owner | May NOT touch |
-|---|---|---|
-| `core/` | All (read), Infra lead (write) | `AppDataStore`, `SharedPrefManager` |
-| `timetable/` | Dev-A | All other packages |
-| `assignments/` | Dev-B | All other packages |
-| `attendance/` | Dev-C | All other packages |
-| `exams/` | Dev-D | All other packages |
-| `gpa/` | Dev-E | All other packages |
-| `notifications/` | Dev-F | All other packages |
-
----
-
-## 5. Resource File Ownership
-
-| File/Directory | Owner |
-|---|---|
-| `res/layout/activity_main.xml` | Infra lead |
-| `res/layout/activity_timetable.xml` | Dev-A |
-| `res/layout/item_timetable.xml` | Dev-A |
-| `res/layout/activity_assignments.xml` | Dev-B |
-| `res/layout/item_assignment.xml` | Dev-B |
-| `res/layout/activity_attendance.xml` | Dev-C |
-| `res/layout/item_attendance.xml` | Dev-C |
-| `res/layout/activity_exams.xml` | Dev-D |
-| `res/layout/item_exam.xml` | Dev-D |
-| `res/layout/activity_gpa.xml` | Dev-E |
-| `res/layout/item_gpa.xml` | Dev-E |
-| `res/values/colors.xml` | Infra lead (all must use existing colors) |
-| `res/values/strings.xml` | All (add only, never modify existing keys) |
-| `res/values/dimens.xml` | Infra lead |
-
----
-
-## 6. Shared Contracts (Frozen After Init)
-
-Once defined by the Infra lead and merged, these contracts are **frozen**. Any change requires a team-wide PR:
-
-- `AppDataStore` public function signatures
-- `SharedPrefManager` key constants
-- Data model class fields
-- `NotificationHelper` channel IDs and notification type enum
-
----
-
-## 7. Error Handling Policy
-
-| Error Type | Handling |
-|---|---|
-| Empty data list | Show empty state view in Activity |
-| JSON parse error | Log error, return empty list, show Toast |
-| Null intent extras | Use defaults or show error Toast, never crash |
-| Invalid user input | Show validation Toast, do not dismiss dialog |
-| Alarm scheduling failure | Log error, show Toast to user |
-
-All errors are handled at the Activity level. No silent failures.

@@ -1,10 +1,20 @@
-# FILE: README.md
-
-# StudBuddy — Android Student Productivity App
+# StudBuddy — Android Student Companion App
 
 ## Project Overview
 
-StudBuddy is a collaborative Android application designed to help university students manage their academic life. It provides modules for timetable management, assignment tracking, attendance monitoring, exam scheduling, and GPA calculation.
+StudBuddy is a comprehensive Android application designed to help students manage their academic life efficiently. It integrates course management, timetable scheduling, attendance tracking, assignment management, exam preparation, and GPA calculation into a single platform.
+
+---
+
+## Key Features
+
+- **Dashboard**: Centralized view of current semester status, upcoming lectures, short attendance alerts, pending assignments, next exams, and expected GPA.
+- **Course Management**: Track courses with credit hours, instructor details, and grade calculation.
+- **Weekly Timetable**: Automated weekly schedule generation with reminders for upcoming classes.
+- **Attendance Tracker**: Monitor attendance percentages against thresholds and calculate its impact on course marks.
+- **Assignment & Exam Tracking**: Manage deadlines and grades for all assessments with automatic course mark updates.
+- **GPA Calculator**: Track CGPA and calculate semester GPA based on course grades and credit hours.
+- **Settings**: Personalize the app with dark/light mode and user-defined thresholds.
 
 ---
 
@@ -13,10 +23,10 @@ StudBuddy is a collaborative Android application designed to help university stu
 | Layer | Technology |
 |---|---|
 | Language | Kotlin |
-| UI | XML Layouts only (NO Jetpack Compose) |
-| Architecture | Activity-based (no Fragments required) |
-| Storage | SharedPrefManager + AppDataStore (in-memory + JSON) |
-| Navigation | Intent-based |
+| UI | XML Layouts (ConstraintLayout + Custom Overlay Sidebar) |
+| Architecture | Activity-based Modular Architecture |
+| Storage | AppDataStore (JSON-based persistence in SharedPrefs) |
+| Navigation | Intent-based Sidebar Navigation (Visibility Toggle) |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 34 (Android 14) |
 
@@ -24,14 +34,16 @@ StudBuddy is a collaborative Android application designed to help university stu
 
 ## Project Modules
 
-| Module | Activity | Developer Ownership |
-|---|---|---|
-| Timetable | `TimetableActivity` | Dev-A |
-| Assignments | `AssignmentsActivity` | Dev-B |
-| Attendance | `AttendanceActivity` | Dev-C |
-| Exams | `ExamsActivity` | Dev-D |
-| GPA Calculator | `GpaActivity` | Dev-E |
-| Notifications | `NotificationService` | Dev-F |
+| Module | Purpose |
+|---|---|
+| **Home** | Dashboard and Semester initialization |
+| **Courses** | Manage courses for the current semester |
+| **Attendance** | Track lecture attendance and course weightage |
+| **Timetable** | Weekly schedule management and alerts |
+| **Assignments** | Task tracking with grade integration |
+| **Exams** | Quiz, Midterm, and Final exam management |
+| **GPA** | Semester GPA and CGPA calculation |
+| **Settings** | UI themes and app configurations |
 
 ---
 
@@ -43,72 +55,18 @@ StudBuddy/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/studbuddy/
-│   │   │   │   ├── core/
-│   │   │   │   │   ├── AppDataStore.kt          ← DO NOT EDIT without team approval
-│   │   │   │   │   ├── SharedPrefManager.kt     ← DO NOT EDIT without team approval
-│   │   │   │   │   ├── MainActivity.kt
-│   │   │   │   │   └── models/
-│   │   │   │   │       ├── TimetableEntry.kt
-│   │   │   │   │       ├── Assignment.kt
-│   │   │   │   │       ├── AttendanceRecord.kt
-│   │   │   │   │       ├── Exam.kt
-│   │   │   │   │       └── Course.kt
-│   │   │   │   ├── timetable/
-│   │   │   │   │   ├── TimetableActivity.kt
-│   │   │   │   │   └── TimetableAdapter.kt
-│   │   │   │   ├── assignments/
-│   │   │   │   │   ├── AssignmentsActivity.kt
-│   │   │   │   │   └── AssignmentsAdapter.kt
-│   │   │   │   ├── attendance/
-│   │   │   │   │   ├── AttendanceActivity.kt
-│   │   │   │   │   └── AttendanceAdapter.kt
-│   │   │   │   ├── exams/
-│   │   │   │   │   ├── ExamsActivity.kt
-│   │   │   │   │   └── ExamsAdapter.kt
-│   │   │   │   ├── gpa/
-│   │   │   │   │   ├── GpaActivity.kt
-│   │   │   │   │   └── GpaAdapter.kt
-│   │   │   │   └── notifications/
-│   │   │   │       ├── NotificationHelper.kt
-│   │   │   │       ├── AlarmReceiver.kt
-│   │   │   │       └── NotificationScheduler.kt
+│   │   │   │   ├── core/                ← Shared logic and data models
+│   │   │   │   ├── home/                ← Dashboard logic
+│   │   │   │   ├── courses/             ← Course management
+│   │   │   │   ├── attendance/          ← Attendance tracking
+│   │   │   │   ├── timetable/           ← Schedule management
+│   │   │   │   ├── assignments/         ← Task management
+│   │   │   │   ├── exams/               ← Assessment management
+│   │   │   │   └── gpa/                 ← Grade calculation
 │   │   │   └── res/
-│   │   │       ├── layout/
-│   │   │       ├── values/
-│   │   │       └── drawable/
-│   └── build.gradle
-├── docs/                                        ← All .md documentation files
-└── README.md
-```
-
----
-
-## Critical Rules — All Developers Must Read
-
-1. **Never edit** `AppDataStore.kt` or `SharedPrefManager.kt` without a team-wide PR review.
-2. **Each developer owns exactly one package.** Do not touch another developer's package.
-3. **All data access goes through `AppDataStore`** — never read/write SharedPreferences directly.
-4. **All UI patterns** must follow `UI_COMPONENT_GUIDELINES.md`.
-5. **All git operations** must follow `GIT_STRATEGY.md` and `BRANCHING_RULES.md`.
-6. **No external libraries** may be added without team approval in a PR discussion.
-
----
-
-## Quick Start
-
-```bash
-# Clone
-git clone https://github.com/org/studbuddy.git
-cd studbuddy
-
-# Create your feature branch (see BRANCHING_RULES.md)
-git checkout -b feature/<your-module>/<short-description>
-
-# Build
-./gradlew assembleDebug
-
-# Run tests
-./gradlew test
+│   │   │       ├── layout/              ← XML Layouts
+│   │   │       └── values/              ← Resources (colors, strings)
+└── README.md                            ← Project documentation
 ```
 
 ---
@@ -118,28 +76,10 @@ git checkout -b feature/<your-module>/<short-description>
 | File | Purpose |
 |---|---|
 | `ARCHITECTURE.md` | System architecture and component wiring |
-| `CODING_STANDARDS.md` | Naming, formatting, style rules |
-| `NAVIGATION_FLOW.md` | Screen flow and Intent contracts |
-| `DATA_FLOW.md` | Data read/write lifecycle |
-| `STORAGE_LAYER.md` | AppDataStore + SharedPrefManager API |
+| `STORAGE_LAYER.md` | Data persistence and AppDataStore API |
 | `MODULE_TIMETABLE.md` | Timetable module full spec |
 | `MODULE_ASSIGNMENTS.md` | Assignments module full spec |
 | `MODULE_ATTENDANCE.md` | Attendance module full spec |
 | `MODULE_EXAMS.md` | Exams module full spec |
 | `MODULE_GPA.md` | GPA module full spec |
-| `UI_COMPONENT_GUIDELINES.md` | UI rules and design system |
-| `RECYCLER_VIEW_PATTERNS.md` | RecyclerView standards |
-| `DIALOG_PATTERNS.md` | AlertDialog standards |
-| `NOTIFICATION_SYSTEM.md` | AlarmManager + notification flow |
-| `PERMISSIONS.md` | Runtime permission handling |
-| `BROADCAST_RECEIVER.md` | BroadcastReceiver patterns |
-| `BUILD_ORDER.md` | Build dependencies and order |
-| `GIT_STRATEGY.md` | Git workflow |
-| `BRANCHING_RULES.md` | Branch naming and rules |
-| `MERGE_CONFLICT_PREVENTION.md` | Anti-conflict strategies |
-
----
-
-## Contact & Ownership
-
-All questions about shared infrastructure (`AppDataStore`, `SharedPrefManager`, `MainActivity`) must be raised as GitHub Issues tagged `[infra]` before any edits are made.
+| `NAVIGATION_FLOW.md` | Sidebar and screen transitions |
