@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="assignments_screen_title">Assignments</string>
+  <string name="assignment_add_title">Add Assignment</string>
+  <string name="assignment_edit_title">Edit Assignment</string>
+  <string name="assignment_grade_title">Record Grade</string>
+  <string name="assignment_delete_title">Delete Assignment</string>
+  <string name="assignment_label_title">Title</string>
+  <string name="assignment_label_course">Course</string>
+  <string name="assignment_label_due_date">Due Date</string>
+  <string name="assignment_label_priority">Priority</string>
+  <string name="assignment_label_description">Description (optional)</string>
+  <string name="assignment_label_weightage">Weightage (% of course grade)</string>
+  <string name="assignment_label_total_marks">Total Marks</string>
+  <string name="assignment_label_obtained_marks">Marks Obtained</string>
+  <string name="assignment_hint_title">e.g. Lab Report #3</string>
+  <string name="assignment_hint_description">Additional details…</string>
+  <string name="assignment_hint_weightage">e.g. 10</string>
+  <string name="assignment_hint_total_marks">e.g. 100</string>
+  <string name="assignment_hint_obtained">e.g. 85</string>
+  <string name="assignment_error_empty_title">Title cannot be empty</string>
+  <string name="assignment_error_no_course">Please select a course</string>
+  <string name="assignment_error_no_date">Please select a due date</string>
+  <string name="assignment_error_invalid_marks">Obtained marks cannot exceed total marks</string>
+  <string name="assignment_error_no_courses_exist">Add courses in the Courses module first</string>
+  <string name="assignment_delete_message">Delete \"%1$s\"? This cannot be undone.</string>
+  <string name="assignment_empty_state">No assignments yet.\nTap + to add your first task.</string>
+  <string name="assignment_empty_pending">No pending assignments. Great work!</string>
+  <string name="assignment_empty_completed">No completed assignments yet.</string>
+  <string name="assignment_filter_all">All</string>
+  <string name="assignment_filter_pending">Pending</string>
+  <string name="assignment_filter_completed">Done</string>
+  <string name="assignment_overdue_label">OVERDUE</string>
+  <string name="assignment_due_today">Due Today</string>
+  <string name="assignment_not_graded">Not graded</string>
+  <string name="assignment_grade_recorded">Grade recorded</string>
+  <string name="assignment_course_updated">Course grade updated</string>
+</resources>

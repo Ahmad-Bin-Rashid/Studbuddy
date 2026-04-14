@@ -10,6 +10,7 @@
     <dimen name="card_margin">8dp</dimen>
     <dimen name="card_padding">16dp</dimen>
     <dimen name="sidebar_width">280dp</dimen>
+    <dimen name="sidebar_width_minimized">72dp</dimen>
     <dimen name="sidebar_item_height">56dp</dimen>
     <dimen name="sidebar_item_padding_h">20dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>

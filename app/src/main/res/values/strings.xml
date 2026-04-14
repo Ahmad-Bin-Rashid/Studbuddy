@@ -13,4 +13,51 @@
     <string name="btn_close_menu">Close menu</string>
     <string name="content_description_menu">Navigation menu</string>
     <string name="content_description_back">Go back</string>
+
+    <!-- Semester -->
+    <string name="semester_screen_title">Semesters</string>
+    <string name="semester_add_title">Add Semester</string>
+    <string name="semester_edit_title">Edit Semester</string>
+    <string name="semester_delete_title">Delete Semester</string>
+    <string name="semester_label_name">Semester Name</string>
+    <string name="semester_hint_name">e.g. Fall 2024</string>
+    <string name="semester_label_start_date">Start Date</string>
+    <string name="semester_label_end_date">End Date</string>
+    <string name="semester_label_active">Set as Active Semester</string>
+    <string name="semester_error_empty_name">Semester name cannot be empty</string>
+    <string name="semester_error_date_range">End date must be after start date</string>
+    <string name="semester_error_no_date">Please select a date</string>
+    <string name="semester_delete_message">Delete \"%1$s\"? Courses in this semester will also be deleted.</string>
+    <string name="semester_empty_state">No semesters yet. Tap + to create your first semester.</string>
+    <string name="semester_none_active">No active semester</string>
+    <string name="semester_active_badge">ACTIVE</string>
+    <string name="semester_btn_select_date">Select Date</string>
+
+    <!-- Course -->
+    <string name="course_screen_title">Courses</string>
+    <string name="course_add_title">Add Course</string>
+    <string name="course_edit_title">Edit Course</string>
+    <string name="course_delete_title">Delete Course</string>
+    <string name="course_label_name">Course Name</string>
+    <string name="course_hint_name">e.g. CS101 — Data Structures</string>
+    <string name="course_label_credits">Credit Hours</string>
+    <string name="course_label_grade">Grade</string>
+    <string name="course_label_semester">Semester</string>
+    <string name="course_label_color">Course Color</string>
+    <string name="course_error_empty_name">Course name cannot be empty</string>
+    <string name="course_error_name_too_long">Course name must be 100 characters or less</string>
+    <string name="course_error_no_semester">Please add a semester first</string>
+    <string name="course_error_select_semester">Please select a semester</string>
+    <string name="course_empty_state">No courses yet. Tap + to add your first course.</string>
+    <string name="course_empty_no_semester">Create a semester first before adding courses.</string>
+    <string name="course_delete_message">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="course_gpa_label">Semester GPA</string>
+    <string name="course_credits_total">Total Credits: %1$d</string>
+    <string name="course_btn_manage_semesters">Manage Semesters</string>
+
+    <!-- Dashboard additions -->
+    <string name="dashboard_active_semester">Active: %1$s</string>
+    <string name="dashboard_no_semester">Tap to set up your semester</string>
+    <string name="dashboard_card_courses_sub">Manage courses &amp; GPA</string>
+    <string name="dashboard_semester_setup">Set Up Semester</string>
 </resources>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorSidebar"
@@ -12,9 +13,6 @@
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
         android:orientation="vertical"
-        android:paddingTop="48dp"
-        android:paddingStart="@dimen/spacing_large"
-        android:paddingEnd="@dimen/spacing_large"
         android:paddingBottom="@dimen/spacing_large">
 
         <ImageButton
@@ -22,15 +20,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_small"
             android:background="@android:color/transparent"
             android:contentDescription="@string/btn_close_menu"
             android:src="@drawable/ic_close"
-            android:tint="@color/colorTextOnPrimary" />
+            app:tint="@color/colorTextOnPrimary" />
 
         <TextView
             android:id="@+id/textViewSidebarAppName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_large"
+            android:layout_marginEnd="@dimen/spacing_large"
             android:layout_marginTop="@dimen/spacing_small"
             android:text="@string/app_name"
             android:textColor="@color/colorTextOnPrimary"
@@ -41,6 +43,8 @@
             android:id="@+id/textViewSidebarTagline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_large"
+            android:layout_marginEnd="@dimen/spacing_large"
             android:alpha="0.7"
             android:text="Your Academic Companion"
             android:textColor="@color/colorSidebarItem"
@@ -63,7 +67,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_small">
+            android:paddingTop="@dimen/spacing_small"
+            android:paddingBottom="@dimen/spacing_small">
 
             <include
                 android:id="@+id/navItemTimetable"
@@ -86,14 +91,30 @@
                 layout="@layout/item_sidebar_nav" />
 
             <include
+                android:id="@+id/navItemCourses"
+                layout="@layout/item_sidebar_nav" />
+
+            <include
                 android:id="@+id/navItemSettings"
                 layout="@layout/item_sidebar_nav" />
 
         </LinearLayout>
     </ScrollView>
 
+    <!-- Minimize Toggle -->
+    <ImageButton
+        android:id="@+id/imageButtonMinimizeSidebar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_arrow_back"
+        app:tint="@color/colorSidebarItem"
+        android:contentDescription="Minimize" />
+
     <!-- Footer -->
     <TextView
+        android:id="@+id/textViewSidebarFooter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:alpha="0.5"

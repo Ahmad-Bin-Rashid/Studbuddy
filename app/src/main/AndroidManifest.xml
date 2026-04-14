@@ -10,15 +10,41 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.StudBuddy">
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".timetable.TimetableActivity"
+            android:label="@string/timetable_screen_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".assignments.AssignmentsActivity"
+            android:label="@string/assignments_screen_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".exams.ExamsActivity"
+            android:label="@string/exams_screen_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".attendance.AttendanceActivity"
+            android:label="@string/attendance_screen_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".gpa.CourseActivity"
+            android:label="@string/course_screen_title"
+            android:parentActivityName=".MainActivity" />
+
     </application>
 
 </manifest>

@@ -17,6 +17,9 @@
     <color name="colorStatusNormal">#4CAF50</color>
     <color name="colorStatusWarning">#FF9800</color>
     <color name="colorStatusCritical">#F44336</color>
+    <color name="colorStatusOverdue">#B71C1C</color>
+    <color name="colorStatusComplete">#9E9E9E</color>
+    <color name="colorEmptyState">#BDBDBD</color>
     <color name="colorOverlay">#99000000</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="exams_screen_title">Exams</string>
+  <string name="exam_add_title">Add Exam</string>
+  <string name="exam_edit_title">Edit Exam</string>
+  <string name="exam_grade_title">Record Exam Grade</string>
+  <string name="exam_delete_title">Delete Exam</string>
+  <string name="exam_label_course">Course</string>
+  <string name="exam_label_type">Exam Type</string>
+  <string name="exam_label_date">Exam Date</string>
+  <string name="exam_label_time">Exam Time</string>
+  <string name="exam_label_venue">Venue (optional)</string>
+  <string name="exam_label_duration">Duration</string>
+  <string name="exam_label_weightage">Weightage (% of course grade)</string>
+  <string name="exam_label_total_marks">Total Marks</string>
+  <string name="exam_label_notes">Notes (optional)</string>
+  <string name="exam_hint_venue">e.g. Hall B, Room 204</string>
+  <string name="exam_hint_weightage">e.g. 30</string>
+  <string name="exam_hint_total_marks">e.g. 100</string>
+  <string name="exam_hint_notes">Study topics, topics covered…</string>
+  <string name="exam_error_no_course">Please select a course</string>
+  <string name="exam_error_no_date">Please select exam date and time</string>
+  <string name="exam_error_no_courses_exist">Add courses in the Courses module first</string>
+  <string name="exam_delete_message">Delete \"%1$s\" exam? This cannot be undone.</string>
+  <string name="exam_empty_upcoming">No upcoming exams. Enjoy the break!</string>
+  <string name="exam_empty_past">No past exams recorded.</string>
+  <string name="exam_filter_upcoming">Upcoming</string>
+  <string name="exam_filter_past">Past</string>
+  <string name="exam_countdown_today">TODAY</string>
+  <string name="exam_countdown_past">Past</string>
+  <string name="exam_not_taken">Not taken</string>
+  <string name="exam_grade_recorded">Exam grade recorded</string>
+</resources>

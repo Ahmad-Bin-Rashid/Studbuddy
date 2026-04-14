@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="attendance_screen_title">Attendance</string>
+  <string name="attendance_mark_title">Mark Attendance</string>
+  <string name="attendance_delete_title">Delete Record</string>
+  <string name="attendance_label_course">Course</string>
+  <string name="attendance_label_date">Date</string>
+  <string name="attendance_label_status">Status</string>
+  <string name="attendance_label_notes">Notes (optional)</string>
+  <string name="attendance_hint_notes">e.g. Doctor\'s appointment</string>
+  <string name="attendance_error_no_course">Please select a course</string>
+  <string name="attendance_error_no_date">Please select a date</string>
+  <string name="attendance_error_no_courses_exist">Add courses in the Courses module first</string>
+  <string name="attendance_delete_message">Delete this attendance record?</string>
+  <string name="attendance_empty_state">No attendance records yet.\nTap + to mark your first class.</string>
+  <string name="attendance_view_summary">Summary</string>
+  <string name="attendance_view_records">Records</string>
+  <string name="attendance_status_present">Present</string>
+  <string name="attendance_status_absent">Absent</string>
+  <string name="attendance_status_late">Late</string>
+  <string name="attendance_threshold_warning">⚠ %1$s attendance is %2$.0f%% — below 75%%</string>
+  <string name="attendance_threshold_critical">🚨 %1$s attendance is %2$.0f%% — critically low!</string>
+  <string name="attendance_good">Attendance is on track</string>
+  <string name="attendance_percentage_label">%1$.0f%%</string>
+  <string name="attendance_record_added">Attendance marked</string>
+</resources>
