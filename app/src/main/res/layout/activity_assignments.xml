@@ -1,233 +1,209 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    android:fitsSystemWindows="true">
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbarAssignments"
-            style="@style/Style.StudBuddy.Toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/toolbar_height"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:title="@string/assignments_screen_title" />
-    </com.google.android.material.appbar.AppBarLayout>
+    android:background="@color/colorBackground">
 
     <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:orientation="vertical">
 
-        <!-- Stats Row -->
+        <!-- Toolbar -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorSurface"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="@dimen/spacing_medium">
+            android:paddingHorizontal="16dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/textViewStatTotal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    tools:text="12" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="1dp"
+            <ImageView
+                android:id="@+id/btnOpenSidebar"
+                android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_gravity="center_vertical"
-                android:background="@color/colorDivider" />
+                android:contentDescription="Open Menu"
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/nav_assignments"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/textViewStatPending"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorStatusWarning"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    tools:text="5" />
+                android:orientation="vertical"
+                android:padding="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pending"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center_vertical"
-                android:background="@color/colorDivider" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/textViewStatOverdue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorStatusCritical"
-                    android:textSize="22sp"
                     android:textStyle="bold"
-                    tools:text="2" />
+                    android:padding="8dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPending"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Overdue"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center_vertical"
-                android:background="@color/colorDivider" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/textViewStatCompleted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorStatusNormal"
-                    android:textSize="22sp"
+                    android:text="Completed"
                     android:textStyle="bold"
-                    tools:text="5" />
+                    android:layout_marginTop="16dp"
+                    android:padding="8dp"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCompleted"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Done"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="11sp" />
-            </LinearLayout>
-        </LinearLayout>
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <!-- Filter + Sort Row -->
-        <LinearLayout
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <Button
+            android:id="@+id/btnAddAssignment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="@dimen/spacing_small">
-
-            <RadioGroup
-                android:id="@+id/radioGroupAssignmentFilter"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/radioAssignmentAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="@string/assignment_filter_all" />
-
-                <RadioButton
-                    android:id="@+id/radioAssignmentPending"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/assignment_filter_pending" />
-
-                <RadioButton
-                    android:id="@+id/radioAssignmentCompleted"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/assignment_filter_completed" />
-            </RadioGroup>
-
-            <Spinner
-                android:id="@+id/spinnerAssignmentSort"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorDivider" />
-
-        <!-- Main List -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewAssignments"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="72dp" />
-
-            <TextView
-                android:id="@+id/textViewEmptyAssignments"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:textColor="@color/colorEmptyState"
-                android:textSize="@dimen/text_size_subtitle"
-                android:visibility="gone" />
-        </RelativeLayout>
+            android:layout_margin="16dp"
+            android:background="@color/colorPrimary"
+            android:text="Add Assignment"
+            android:textColor="@color/white" />
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddAssignment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/spacing_large"
-        android:backgroundTint="@color/colorPrimary"
-        android:src="@drawable/ic_add"
-        app:tint="@color/colorTextOnPrimary" />
+    <!-- Overlay Sidebar -->
+    <View
+        android:id="@+id/sidebarDim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <androidx.cardview.widget.CardView
+        android:id="@+id/sidebarContainer"
+        android:layout_width="@dimen/sidebar_width"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:cardElevation="@dimen/card_elevation"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <!-- Sidebar Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:background="@color/colorPrimary"
+                android:gravity="bottom"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:contentDescription="App Icon"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/app_name"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Navigation Menu -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/navHome"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_home" />
+
+                    <TextView
+                        android:id="@+id/navCourses"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_courses" />
+
+                    <TextView
+                        android:id="@+id/navAttendance"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_attendance" />
+
+                    <TextView
+                        android:id="@+id/navTimetable"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_timetable" />
+
+                    <TextView
+                        android:id="@+id/navAssignments"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_assignments" />
+
+                    <TextView
+                        android:id="@+id/navExams"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_exams" />
+
+                    <TextView
+                        android:id="@+id/navGpa"
+                        style="@style/NavMenuItem"
+                        android:text="@string/nav_gpa" />
+
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/colorDivider" />
+
+            <!-- Footer Menu -->
+            <TextView
+                android:id="@+id/navSettings"
+                style="@style/NavMenuItem"
+                android:layout_margin="8dp"
+                android:text="@string/nav_settings" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

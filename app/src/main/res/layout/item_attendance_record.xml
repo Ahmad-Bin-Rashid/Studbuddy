@@ -1,75 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Style.StudBuddy.Card"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="@dimen/card_padding">
+        android:padding="12dp">
 
-        <View
-            android:id="@+id/viewAttendanceStatusDot"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginEnd="@dimen/spacing_medium" />
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvRecordDate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="14sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/textViewRecordStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="@dimen/text_size_subtitle"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/textViewRecordCourseName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_small"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="@dimen/text_size_small" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/textViewRecordDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/colorTextSecondary"
-                android:textSize="@dimen/text_size_small" />
-
-            <TextView
-                android:id="@+id/textViewRecordNotes"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/colorTextSecondary"
-                android:textSize="@dimen/text_size_small"
-                android:textStyle="italic"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/imageButtonDeleteRecord"
+        <TextView
+            android:id="@+id/tvRecordStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:padding="@dimen/spacing_small"
-            android:src="@drawable/ic_delete" />
+            android:textStyle="bold"
+            android:textSize="14sp" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

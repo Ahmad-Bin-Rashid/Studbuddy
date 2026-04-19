@@ -1,553 +1,260 @@
 package com.example.studbuddy.assignments
 
+import android.app.AlarmManager
+import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.content.Context
-import android.graphics.Paint
+import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.AppDataStore
 import com.example.studbuddy.core.models.Assignment
-import com.example.studbuddy.core.models.Course
-import com.example.studbuddy.core.models.Priority
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
-class AssignmentsActivity : AppCompatActivity() {
+class AssignmentsActivity : BaseActivity() {
 
-    // ── Section 1: View References ─────────────────────
-    private lateinit var toolbarAssignments: Toolbar
-    private lateinit var textViewStatTotal: TextView
-    private lateinit var textViewStatPending: TextView
-    private lateinit var textViewStatOverdue: TextView
-    private lateinit var textViewStatCompleted: TextView
-    private lateinit var radioGroupAssignmentFilter: RadioGroup
-    private lateinit var spinnerAssignmentSort: Spinner
-    private lateinit var recyclerViewAssignments: RecyclerView
-    private lateinit var textViewEmptyAssignments: TextView
-    private lateinit var fabAddAssignment: FloatingActionButton
+    private lateinit var rvPending: RecyclerView
+    private lateinit var rvCompleted: RecyclerView
+    private lateinit var pendingAdapter: AssignmentsAdapter
+    private lateinit var completedAdapter: AssignmentsAdapter
+    
+    private val pendingList = mutableListOf<Assignment>()
+    private val completedList = mutableListOf<Assignment>()
 
-    // ── Section 2: Adapter & State ─────────────────────
-    private lateinit var assignmentsAdapter: AssignmentsAdapter
-    private val assignmentList = mutableListOf<Assignment>()
-    private var currentFilter = AssignmentFilter.ALL
-    private var currentSort = AssignmentSort.DUE_DATE
-
-    enum class AssignmentFilter { ALL, PENDING, COMPLETED }
-    enum class AssignmentSort { DUE_DATE, PRIORITY, COURSE }
-
-    // ── Section 3: Lifecycle ───────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_assignments)
 
-        toolbarAssignments = findViewById(R.id.toolbarAssignments)
-        textViewStatTotal = findViewById(R.id.textViewStatTotal)
-        textViewStatPending = findViewById(R.id.textViewStatPending)
-        textViewStatOverdue = findViewById(R.id.textViewStatOverdue)
-        textViewStatCompleted = findViewById(R.id.textViewStatCompleted)
-        radioGroupAssignmentFilter = findViewById(R.id.radioGroupAssignmentFilter)
-        spinnerAssignmentSort = findViewById(R.id.spinnerAssignmentSort)
-        recyclerViewAssignments = findViewById(R.id.recyclerViewAssignments)
-        textViewEmptyAssignments = findViewById(R.id.textViewEmptyAssignments)
-        fabAddAssignment = findViewById(R.id.fabAddAssignment)
-
-        setupToolbar()
-        setupRecyclerView()
-        setupFab()
-        setupFilterAndSort()
+        setupSidebar()
+        setupViews()
+        setupRecyclerViews()
     }
 
     override fun onResume() {
         super.onResume()
-        loadData()
+        loadAssignments()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
-    }
-
-    // ── Section 4: Setup ───────────────────────────────
-    private fun setupToolbar() {
-        setSupportActionBar(toolbarAssignments)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun setupRecyclerView() {
-        assignmentsAdapter = AssignmentsAdapter(assignmentList,
-            onCheckChanged = { assignment, isChecked ->
-                val updated = assignment.copy(isCompleted = isChecked)
-                AppDataStore.updateAssignment(updated)
-                loadData()
-            },
-            onGradeClick = { showGradeDialog(it) },
-            onEditClick = { showEditDialog(it) },
-            onDeleteClick = { showDeleteConfirmation(it) })
-        recyclerViewAssignments.layoutManager = LinearLayoutManager(this)
-        recyclerViewAssignments.adapter = assignmentsAdapter
-    }
-
-    private fun setupFab() {
-        fabAddAssignment.setOnClickListener { showAddDialog() }
-    }
-
-    private fun setupFilterAndSort() {
-        radioGroupAssignmentFilter.setOnCheckedChangeListener { _, checkedId ->
-            currentFilter = when (checkedId) {
-                R.id.radioAssignmentPending -> AssignmentFilter.PENDING
-                R.id.radioAssignmentCompleted -> AssignmentFilter.COMPLETED
-                else -> AssignmentFilter.ALL
-            }
-            loadData()
-        }
-
-        spinnerAssignmentSort.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, SORT_OPTIONS).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerAssignmentSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                currentSort = AssignmentSort.values()[position]
-                loadData()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-    }
-
-    // ── Section 5: Data ────────────────────────────────
-    private fun loadData() {
-        val all = AppDataStore.getAssignmentList()
-        updateStats(all)
-        val filtered = applyFilterAndSort(all)
-        assignmentList.clear()
-        assignmentList.addAll(filtered)
-        assignmentsAdapter.updateList(assignmentList)
-        updateEmptyState()
-    }
-
-    private fun updateStats(all: List<Assignment>) {
-        val now = System.currentTimeMillis()
-        textViewStatTotal.text = all.size.toString()
-        textViewStatPending.text = all.count { !it.isCompleted }.toString()
-        textViewStatOverdue.text = all.count { !it.isCompleted && it.dueDate < now }.toString()
-        textViewStatCompleted.text = all.count { it.isCompleted }.toString()
-    }
-
-    private fun applyFilterAndSort(all: List<Assignment>): List<Assignment> {
-        val filtered = when (currentFilter) {
-            AssignmentFilter.PENDING -> all.filter { !it.isCompleted }
-            AssignmentFilter.COMPLETED -> all.filter { it.isCompleted }
-            else -> all
-        }
-        return when (currentSort) {
-            AssignmentSort.DUE_DATE -> filtered.sortedBy { it.dueDate }
-            AssignmentSort.PRIORITY -> filtered.sortedByDescending { it.priority.ordinal }
-            AssignmentSort.COURSE -> filtered.sortedBy { it.courseName }
-        }
-    }
-
-    private fun saveAssignment(a: Assignment) {
-        AppDataStore.addAssignment(a)
-        loadData()
-        Toast.makeText(this, "Assignment added", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun updateAssignment(a: Assignment) {
-        AppDataStore.updateAssignment(a)
-        loadData()
-        Toast.makeText(this, "Assignment updated", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun deleteAssignment(id: String) {
-        AppDataStore.deleteAssignment(id)
-        loadData()
-        Toast.makeText(this, "Assignment removed", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun recordGrade(assignment: Assignment, obtainedMarks: Double) {
-        val updated = assignment.copy(obtainedMarks = obtainedMarks)
-        AppDataStore.updateAssignment(updated)
-        recalculateCourseGrade(assignment.courseName)
-        loadData()
-        Toast.makeText(this, getString(R.string.assignment_grade_recorded), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun recalculateCourseGrade(courseName: String) {
-        val assignments = AppDataStore.getAssignmentList()
-            .filter { it.courseName == courseName && it.obtainedMarks >= 0 && it.totalMarks > 0 }
-        val exams = AppDataStore.getExamList()
-            .filter { it.courseName == courseName && it.obtainedMarks >= 0 && it.totalMarks > 0 }
-        
-        val totalWeightage = assignments.sumOf { it.weightage } + exams.sumOf { it.weightage }
-        if (totalWeightage <= 0.0) return
-
-        val earnedWeightage = assignments.sumOf { (it.obtainedMarks / it.totalMarks) * it.weightage } +
-                             exams.sumOf { (it.obtainedMarks / it.totalMarks) * it.weightage }
-        
-        val effectivePct = (earnedWeightage / totalWeightage) * 100.0
-        val newGrade = percentageToGrade(effectivePct)
-        val course = AppDataStore.getCourseList().firstOrNull { it.name == courseName } ?: return
-        
-        AppDataStore.updateCourse(course.copy(
-            grade = newGrade,
-            gradePoints = Course.gradeToPoints(newGrade)
-        ))
-    }
-
-    private fun percentageToGrade(pct: Double): String {
-        return when {
-            pct >= 93.0 -> "A"
-            pct >= 90.0 -> "A-"
-            pct >= 87.0 -> "B+"
-            pct >= 83.0 -> "B"
-            pct >= 80.0 -> "B-"
-            pct >= 77.0 -> "C+"
-            pct >= 73.0 -> "C"
-            pct >= 70.0 -> "C-"
-            pct >= 67.0 -> "D+"
-            pct >= 60.0 -> "D"
-            else -> "F"
-        }
-    }
-
-    // ── Section 6: Dialogs ─────────────────────────────
-    private fun showAddDialog() {
-        val courses = AppDataStore.getCourseNames()
-        if (courses.isEmpty()) {
-            Toast.makeText(this, getString(R.string.assignment_error_no_courses_exist), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_assignment, null)
-        var selectedDate = 0L
-        val editTextTitle = dialogView.findViewById<EditText>(R.id.editTextAssignmentTitle)
-        val spinnerCourse = dialogView.findViewById<Spinner>(R.id.spinnerAssignmentCourse)
-        val buttonPickDate = dialogView.findViewById<Button>(R.id.buttonPickAssignmentDate)
-        val textViewDate = dialogView.findViewById<TextView>(R.id.textViewAssignmentDateDisplay)
-        val radioGroupPriority = dialogView.findViewById<RadioGroup>(R.id.radioGroupPriority)
-        val editTextWeightage = dialogView.findViewById<EditText>(R.id.editTextAssignmentWeightage)
-        val editTextTotalMarks = dialogView.findViewById<EditText>(R.id.editTextAssignmentTotalMarks)
-        val editTextDescription = dialogView.findViewById<EditText>(R.id.editTextAssignmentDescription)
-
-        spinnerCourse.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-
-        buttonPickDate.setOnClickListener {
-            val cal = Calendar.getInstance()
-            DatePickerDialog(this, { _, y, m, d ->
-                val c = Calendar.getInstance().apply { set(y, m, d, 23, 59, 59) }
-                selectedDate = c.timeInMillis
-                textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(selectedDate))
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.assignment_add_title)
-            .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val title = editTextTitle.text.toString().trim()
-                val course = spinnerCourse.selectedItem?.toString() ?: ""
-                val weightage = editTextWeightage.text.toString().toDoubleOrNull() ?: 0.0
-                val totalMarks = editTextTotalMarks.text.toString().toDoubleOrNull() ?: 100.0
-                
-                if (!validateAssignmentInput(title, course, selectedDate)) return@setOnClickListener
-                
-                val priority = when (radioGroupPriority.checkedRadioButtonId) {
-                    R.id.radioPriorityHigh -> Priority.HIGH
-                    R.id.radioPriorityLow -> Priority.LOW
-                    else -> Priority.MEDIUM
-                }
-
-                val assignment = Assignment(
-                    id = UUID.randomUUID().toString(),
-                    title = title,
-                    courseName = course,
-                    dueDate = selectedDate,
-                    priority = priority,
-                    description = editTextDescription.text.toString().trim(),
-                    isCompleted = false,
-                    weightage = weightage,
-                    obtainedMarks = -1.0,
-                    totalMarks = totalMarks
-                )
-                saveAssignment(assignment)
-                dialog.dismiss()
-            }
-        }
-        dialog.show()
-    }
-
-    private fun showEditDialog(assignment: Assignment) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_assignment, null)
-        var selectedDate = assignment.dueDate
-        val editTextTitle = dialogView.findViewById<EditText>(R.id.editTextAssignmentTitle)
-        val spinnerCourse = dialogView.findViewById<Spinner>(R.id.spinnerAssignmentCourse)
-        val buttonPickDate = dialogView.findViewById<Button>(R.id.buttonPickAssignmentDate)
-        val textViewDate = dialogView.findViewById<TextView>(R.id.textViewAssignmentDateDisplay)
-        val radioGroupPriority = dialogView.findViewById<RadioGroup>(R.id.radioGroupPriority)
-        val editTextWeightage = dialogView.findViewById<EditText>(R.id.editTextAssignmentWeightage)
-        val editTextTotalMarks = dialogView.findViewById<EditText>(R.id.editTextAssignmentTotalMarks)
-        val editTextDescription = dialogView.findViewById<EditText>(R.id.editTextAssignmentDescription)
-
-        editTextTitle.setText(assignment.title)
-        val courses = AppDataStore.getCourseNames()
-        spinnerCourse.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerCourse.setSelection(courses.indexOf(assignment.courseName).coerceAtLeast(0))
-        
-        textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(selectedDate))
-        buttonPickDate.setOnClickListener {
-            val cal = Calendar.getInstance().apply { timeInMillis = selectedDate }
-            DatePickerDialog(this, { _, y, m, d ->
-                val c = Calendar.getInstance().apply { set(y, m, d, 23, 59, 59) }
-                selectedDate = c.timeInMillis
-                textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(selectedDate))
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
-        }
-
-        radioGroupPriority.check(when (assignment.priority) {
-            Priority.HIGH -> R.id.radioPriorityHigh
-            Priority.LOW -> R.id.radioPriorityLow
-            else -> R.id.radioPriorityMedium
-        })
-
-        editTextWeightage.setText(assignment.weightage.toString())
-        editTextTotalMarks.setText(assignment.totalMarks.toString())
-        editTextDescription.setText(assignment.description)
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.assignment_edit_title)
-            .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val title = editTextTitle.text.toString().trim()
-                val course = spinnerCourse.selectedItem?.toString() ?: ""
-                val weightage = editTextWeightage.text.toString().toDoubleOrNull() ?: 0.0
-                val totalMarks = editTextTotalMarks.text.toString().toDoubleOrNull() ?: 100.0
-                
-                if (!validateAssignmentInput(title, course, selectedDate)) return@setOnClickListener
-                
-                val priority = when (radioGroupPriority.checkedRadioButtonId) {
-                    R.id.radioPriorityHigh -> Priority.HIGH
-                    R.id.radioPriorityLow -> Priority.LOW
-                    else -> Priority.MEDIUM
-                }
-
-                updateAssignment(assignment.copy(
-                    title = title,
-                    courseName = course,
-                    dueDate = selectedDate,
-                    priority = priority,
-                    weightage = weightage,
-                    totalMarks = totalMarks,
-                    description = editTextDescription.text.toString().trim()
-                ))
-                dialog.dismiss()
-            }
-        }
-        dialog.show()
-    }
-
-    private fun showGradeDialog(assignment: Assignment) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_grade_assignment, null)
-        val textViewName = dialogView.findViewById<TextView>(R.id.textViewGradeAssignmentName)
-        val textViewCourse = dialogView.findViewById<TextView>(R.id.textViewGradeAssignmentCourse)
-        val textViewTotal = dialogView.findViewById<TextView>(R.id.textViewGradeTotalMarks)
-        val editTextObtained = dialogView.findViewById<EditText>(R.id.editTextObtainedMarks)
-        val textViewPreview = dialogView.findViewById<TextView>(R.id.textViewGradePercentagePreview)
-
-        textViewName.text = assignment.title
-        textViewCourse.text = assignment.courseName
-        textViewTotal.text = "${assignment.totalMarks.toInt()} marks"
-        if (assignment.obtainedMarks >= 0) {
-            editTextObtained.setText(assignment.obtainedMarks.toInt().toString())
-        }
-
-        editTextObtained.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val obtained = s.toString().toDoubleOrNull()
-                if (obtained != null && assignment.totalMarks > 0) {
-                    val pct = (obtained / assignment.totalMarks) * 100.0
-                    textViewPreview.text = String.format("%.1f%% — %s", pct, percentageToGrade(pct))
-                } else {
-                    textViewPreview.text = "– %"
-                }
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.assignment_grade_title))
-            .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val obtained = editTextObtained.text.toString().toDoubleOrNull()
-                if (obtained == null || obtained < 0 || obtained > assignment.totalMarks) {
-                    Toast.makeText(this, getString(R.string.assignment_error_invalid_marks), Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                recordGrade(assignment, obtained)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showDeleteConfirmation(assignment: Assignment) {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.assignment_delete_title))
-            .setMessage(getString(R.string.assignment_delete_message, assignment.title))
-            .setPositiveButton("Delete") { _, _ -> deleteAssignment(assignment.id) }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    // ── Section 7: Helpers ─────────────────────────────
-    private fun validateAssignmentInput(title: String, course: String, dueDate: Long): Boolean {
-        if (title.isBlank()) {
-            Toast.makeText(this, getString(R.string.assignment_error_empty_title), Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (course.isBlank()) {
-            Toast.makeText(this, getString(R.string.assignment_error_no_course), Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (dueDate == 0L) {
-            Toast.makeText(this, getString(R.string.assignment_error_no_date), Toast.LENGTH_SHORT).show()
-            return false
-        }
-        return true
-    }
-
-    private fun updateEmptyState() {
-        val isEmpty = assignmentList.isEmpty()
-        textViewEmptyAssignments.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        recyclerViewAssignments.visibility = if (isEmpty) View.GONE else View.VISIBLE
-        
-        if (isEmpty) {
-            textViewEmptyAssignments.text = when (currentFilter) {
-                AssignmentFilter.PENDING -> getString(R.string.assignment_empty_pending)
-                AssignmentFilter.COMPLETED -> getString(R.string.assignment_empty_completed)
-                else -> getString(R.string.assignment_empty_state)
-            }
-        }
-    }
-
-    // ── Section 8: Inner Adapter ───────────────────────
-    private inner class AssignmentsAdapter(
-        private val items: MutableList<Assignment>,
-        private val onCheckChanged: (Assignment, Boolean) -> Unit,
-        private val onGradeClick: (Assignment) -> Unit,
-        private val onEditClick: (Assignment) -> Unit,
-        private val onDeleteClick: (Assignment) -> Unit
-    ) : RecyclerView.Adapter<AssignmentsAdapter.ViewHolder>() {
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val cardAssignmentItem: CardView = view.findViewById(R.id.cardAssignmentItem)
-            val checkBoxAssignmentComplete: CheckBox = view.findViewById(R.id.checkBoxAssignmentComplete)
-            val textViewAssignmentTitle: TextView = view.findViewById(R.id.textViewAssignmentTitle)
-            val textViewPriorityBadge: TextView = view.findViewById(R.id.textViewPriorityBadge)
-            val textViewAssignmentCourse: TextView = view.findViewById(R.id.textViewAssignmentCourse)
-            val textViewAssignmentDueDate: TextView = view.findViewById(R.id.textViewAssignmentDueDate)
-            val textViewAssignmentDescription: TextView = view.findViewById(R.id.textViewAssignmentDescription)
-            val textViewAssignmentWeightage: TextView = view.findViewById(R.id.textViewAssignmentWeightage)
-            val textViewAssignmentMarks: TextView = view.findViewById(R.id.textViewAssignmentMarks)
-            val imageButtonGradeAssignment: ImageButton = view.findViewById(R.id.imageButtonGradeAssignment)
-            val imageButtonEditAssignment: ImageButton = view.findViewById(R.id.imageButtonEditAssignment)
-            val imageButtonDeleteAssignment: ImageButton = view.findViewById(R.id.imageButtonDeleteAssignment)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_assignment, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val a = items[position]
-            val now = System.currentTimeMillis()
-            val isOverdue = !a.isCompleted && a.dueDate < now
-
-            holder.textViewAssignmentTitle.text = a.title
-            holder.textViewAssignmentTitle.paintFlags = if (a.isCompleted) {
-                holder.textViewAssignmentTitle.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+    private fun setupViews() {
+        findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
+            if (AppDataStore.getCourses().isEmpty()) {
+                Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
-                holder.textViewAssignmentTitle.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                showAssignmentDialog(null)
             }
-
-            holder.cardAssignmentItem.alpha = if (a.isCompleted) 0.65f else 1.0f
-
-            holder.textViewPriorityBadge.text = a.priority.name
-            val badgeColor = when (a.priority) {
-                Priority.HIGH -> R.color.colorStatusCritical
-                Priority.MEDIUM -> R.color.colorStatusWarning
-                Priority.LOW -> R.color.colorStatusNormal
-            }
-            holder.textViewPriorityBadge.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, badgeColor))
-
-            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            val dueDateStr = when {
-                isOverdue -> getString(R.string.assignment_overdue_label)
-                a.dueDate - now < 86_400_000L -> getString(R.string.assignment_due_today)
-                else -> sdf.format(Date(a.dueDate))
-            }
-            holder.textViewAssignmentDueDate.text = dueDateStr
-            holder.textViewAssignmentDueDate.setTextColor(ContextCompat.getColor(holder.itemView.context,
-                if (isOverdue) R.color.colorStatusCritical
-                else if (a.dueDate - now < 86_400_000L) R.color.colorStatusWarning
-                else R.color.colorTextSecondary))
-
-            holder.textViewAssignmentDescription.visibility = if (a.description.isBlank()) View.GONE else View.VISIBLE
-            holder.textViewAssignmentDescription.text = a.description
-            holder.textViewAssignmentWeightage.text = "${a.weightage.toInt()}% of grade"
-            holder.textViewAssignmentMarks.text = if (a.obtainedMarks < 0) getString(R.string.assignment_not_graded)
-                                                 else "${a.obtainedMarks.toInt()}/${a.totalMarks.toInt()}"
-            holder.textViewAssignmentMarks.setTextColor(ContextCompat.getColor(holder.itemView.context,
-                if (a.obtainedMarks < 0) R.color.colorTextSecondary else R.color.colorStatusNormal))
-
-            holder.textViewAssignmentCourse.text = a.courseName
-
-            holder.checkBoxAssignmentComplete.setOnCheckedChangeListener(null)
-            holder.checkBoxAssignmentComplete.isChecked = a.isCompleted
-            holder.checkBoxAssignmentComplete.setOnCheckedChangeListener { _, checked -> onCheckChanged(a, checked) }
-
-            holder.imageButtonGradeAssignment.setOnClickListener { onGradeClick(a) }
-            holder.imageButtonEditAssignment.setOnClickListener { onEditClick(a) }
-            holder.imageButtonDeleteAssignment.setOnClickListener { onDeleteClick(a) }
-        }
-
-        override fun getItemCount() = items.size
-
-        fun updateList(newItems: List<Assignment>) {
-            items.clear()
-            items.addAll(newItems)
-            notifyDataSetChanged()
         }
     }
 
-    companion object {
-        val SORT_OPTIONS = listOf("Due Date", "Priority", "Course")
+    private fun setupRecyclerViews() {
+        rvPending = findViewById(R.id.rvPending)
+        rvCompleted = findViewById(R.id.rvCompleted)
+
+        pendingAdapter = AssignmentsAdapter(pendingList, { assignment, isChecked ->
+            updateAssignmentStatus(assignment, isChecked)
+        }, { assignment ->
+            showAssignmentDialog(assignment)
+        })
+
+        completedAdapter = AssignmentsAdapter(completedList, { assignment, isChecked ->
+            updateAssignmentStatus(assignment, isChecked)
+        }, { assignment ->
+            showAssignmentDialog(assignment)
+        })
+
+        rvPending.layoutManager = LinearLayoutManager(this)
+        rvPending.adapter = pendingAdapter
+
+        rvCompleted.layoutManager = LinearLayoutManager(this)
+        rvCompleted.adapter = completedAdapter
+    }
+
+    private fun loadAssignments() {
+        val allAssignments = AppDataStore.getAssignments()
+        
+        pendingList.clear()
+        pendingList.addAll(allAssignments.filter { !it.isCompleted }.sortedBy { it.dueDate })
+        
+        completedList.clear()
+        completedList.addAll(allAssignments.filter { it.isCompleted }.sortedByDescending { it.dueDate })
+        
+        pendingAdapter.notifyDataSetChanged()
+        completedAdapter.notifyDataSetChanged()
+    }
+
+    private fun updateAssignmentStatus(assignment: Assignment, isCompleted: Boolean) {
+        val updated = assignment.copy(isCompleted = isCompleted)
+        AppDataStore.updateAssignment(updated)
+        
+        if (isCompleted) {
+            cancelReminder(updated)
+        } else {
+            scheduleReminder(updated)
+        }
+        
+        updateCourseMarks(updated.courseId)
+        loadAssignments()
+    }
+
+    private fun showAssignmentDialog(existing: Assignment?) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_assignment, null)
+        val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
+        val etName = dialogView.findViewById<EditText>(R.id.etAssignmentTitle)
+        val etTotal = dialogView.findViewById<EditText>(R.id.etTotalMarks)
+        val etWeight = dialogView.findViewById<EditText>(R.id.etWeightage)
+        val btnDate = dialogView.findViewById<Button>(R.id.btnDueDate)
+        val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
+        val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
+
+        val courses = AppDataStore.getCourses()
+        val courseNames = courses.map { it.name }
+        spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courseNames)
+
+        var selectedDate = existing?.dueDate ?: System.currentTimeMillis()
+        val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        
+        if (existing != null) {
+            etName.setText(existing.name)
+            etTotal.setText(existing.totalMarks.toString())
+            etWeight.setText(existing.weightage.toString())
+            btnDate.text = sdf.format(Date(existing.dueDate))
+            val courseIdx = courses.indexOfFirst { it.id == existing.courseId }
+            if (courseIdx != -1) spinnerCourses.setSelection(courseIdx)
+            
+            if (existing.isCompleted) {
+                layoutObtained.visibility = View.VISIBLE
+                etObtained.setText(existing.obtainedMarks?.toString() ?: "")
+            }
+        }
+
+        btnDate.setOnClickListener {
+            val cal = Calendar.getInstance()
+            cal.timeInMillis = selectedDate
+            DatePickerDialog(this, { _, y, m, d ->
+                val selected = Calendar.getInstance()
+                selected.set(y, m, d)
+                selectedDate = selected.timeInMillis
+                btnDate.text = sdf.format(selected.time)
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Add Assignment" else "Edit Assignment")
+            .setView(dialogView)
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+        
+        if (existing != null) {
+            dialogBuilder.setNeutralButton("Delete") { _, _ ->
+                confirmDelete(existing)
+            }
+        }
+
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val courseId = courses[spinnerCourses.selectedItemPosition].id
+            val name = etName.text.toString().trim()
+            val total = etTotal.text.toString().toDoubleOrNull() ?: 0.0
+            val weight = etWeight.text.toString().toDoubleOrNull() ?: 0.0
+            val obtained = etObtained.text.toString().toDoubleOrNull()
+
+            if (name.isNotEmpty()) {
+                val assignment = Assignment(
+                    id = existing?.id ?: UUID.randomUUID().toString(),
+                    name = name,
+                    courseId = courseId,
+                    dueDate = selectedDate,
+                    totalMarks = total,
+                    obtainedMarks = obtained,
+                    weightage = weight,
+                    isCompleted = existing?.isCompleted ?: false
+                )
+                AppDataStore.updateAssignment(assignment)
+                
+                if (!assignment.isCompleted) {
+                    scheduleReminder(assignment)
+                }
+                
+                updateCourseMarks(courseId)
+                loadAssignments()
+                alertDialog.dismiss()
+            } else {
+                Toast.makeText(this, "Please enter assignment name", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun confirmDelete(assignment: Assignment) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Assignment")
+            .setMessage("Are you sure you want to delete this assignment?")
+            .setPositiveButton("Delete") { _, _ ->
+                cancelReminder(assignment)
+                AppDataStore.deleteAssignment(assignment.id)
+                updateCourseMarks(assignment.courseId)
+                loadAssignments()
+                Toast.makeText(this, "Assignment deleted", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updateCourseMarks(courseId: String) {
+        val course = AppDataStore.getCourses().find { it.id == courseId } ?: return
+        val assignments = AppDataStore.getAssignments().filter { it.courseId == courseId && it.isCompleted }
+        
+        val totalMarksFromAssignments = assignments.sumOf { 
+            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0 
+        }
+        
+        val updatedCourse = course.copy(marks = totalMarksFromAssignments)
+        AppDataStore.updateCourse(updatedCourse)
+    }
+
+    private fun scheduleReminder(assignment: Assignment) {
+        val triggerTime = assignment.dueDate - TimeUnit.HOURS.toMillis(24)
+        if (triggerTime <= System.currentTimeMillis()) return
+
+        val intent = Intent("com.example.studbuddy.ASSIGNMENT_REMINDER").apply {
+            putExtra("assignment_id", assignment.id)
+            putExtra("name", assignment.name)
+            `package` = packageName
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, assignment.id.hashCode(), intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        try {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        } catch (e: SecurityException) {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        }
+    }
+
+    private fun cancelReminder(assignment: Assignment) {
+        val intent = Intent("com.example.studbuddy.ASSIGNMENT_REMINDER").apply {
+            `package` = packageName
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, assignment.id.hashCode(), intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        pendingIntent?.let {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(it)
+        }
     }
 }

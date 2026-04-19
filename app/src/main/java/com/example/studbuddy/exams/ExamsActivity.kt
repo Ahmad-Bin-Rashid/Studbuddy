@@ -1,514 +1,255 @@
 package com.example.studbuddy.exams
 
+import android.app.AlarmManager
+import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.res.Resources
-import android.graphics.drawable.GradientDrawable
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.AppDataStore
-import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.studbuddy.core.models.ExamType
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
-class ExamsActivity : AppCompatActivity() {
+class ExamsActivity : BaseActivity() {
 
-    // ── Section 1: View References ─────────────────────
-    private lateinit var toolbarExams: Toolbar
-    private lateinit var radioGroupExamFilter: RadioGroup
-    private lateinit var recyclerViewExams: RecyclerView
-    private lateinit var textViewEmptyExams: TextView
-    private lateinit var fabAddExam: FloatingActionButton
+    private lateinit var rvPending: RecyclerView
+    private lateinit var rvCompleted: RecyclerView
+    private lateinit var pendingAdapter: ExamAdapter
+    private lateinit var completedAdapter: ExamAdapter
+    
+    private val pendingList = mutableListOf<Exam>()
+    private val completedList = mutableListOf<Exam>()
 
-    // ── Section 2: Adapter & State ─────────────────────
-    private lateinit var examsAdapter: ExamsAdapter
-    private val examList = mutableListOf<Exam>()
-    private var currentFilter = ExamFilter.UPCOMING
-
-    enum class ExamFilter { UPCOMING, PAST }
-
-    // ── Section 3: Lifecycle ───────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exams)
 
-        toolbarExams = findViewById(R.id.toolbarExams)
-        radioGroupExamFilter = findViewById(R.id.radioGroupExamFilter)
-        recyclerViewExams = findViewById(R.id.recyclerViewExams)
-        textViewEmptyExams = findViewById(R.id.textViewEmptyExams)
-        fabAddExam = findViewById(R.id.fabAddExam)
-
-        setupToolbar()
-        setupRecyclerView()
-        setupFab()
-        setupFilter()
+        setupSidebar()
+        setupViews()
+        setupRecyclerViews()
     }
 
     override fun onResume() {
         super.onResume()
-        loadData()
+        loadExams()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
-    }
-
-    // ── Section 4: Setup ───────────────────────────────
-    private fun setupToolbar() {
-        setSupportActionBar(toolbarExams)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun setupRecyclerView() {
-        examsAdapter = ExamsAdapter(examList,
-            onGradeClick = { showGradeDialog(it) },
-            onEditClick = { showEditDialog(it) },
-            onDeleteClick = { showDeleteConfirmation(it) })
-        recyclerViewExams.layoutManager = LinearLayoutManager(this)
-        recyclerViewExams.adapter = examsAdapter
-    }
-
-    private fun setupFab() {
-        fabAddExam.setOnClickListener { showAddDialog() }
-    }
-
-    private fun setupFilter() {
-        radioGroupExamFilter.setOnCheckedChangeListener { _, checkedId ->
-            currentFilter = if (checkedId == R.id.radioExamPast) ExamFilter.PAST else ExamFilter.UPCOMING
-            loadData()
+    private fun setupViews() {
+        findViewById<Button>(R.id.btnAddExam).setOnClickListener {
+            if (AppDataStore.getCourses().isEmpty()) {
+                Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
+            } else {
+                showExamDialog(null)
+            }
         }
     }
 
-    // ── Section 5: Data ────────────────────────────────
-    private fun loadData() {
-        val all = AppDataStore.getExamList()
-        val now = System.currentTimeMillis()
-        val filtered = when (currentFilter) {
-            ExamFilter.UPCOMING -> all.filter { it.examDate > now }.sortedBy { it.examDate }
-            ExamFilter.PAST -> all.filter { it.examDate <= now }.sortedByDescending { it.examDate }
-        }
-        examList.clear()
-        examList.addAll(filtered)
-        examsAdapter.updateList(examList)
-        updateEmptyState()
+    private fun setupRecyclerViews() {
+        rvPending = findViewById(R.id.rvPendingExams)
+        rvCompleted = findViewById(R.id.rvCompletedExams)
+
+        pendingAdapter = ExamAdapter(pendingList) { exam -> showExamDialog(exam) }
+        completedAdapter = ExamAdapter(completedList) { exam -> showExamDialog(exam) }
+
+        rvPending.layoutManager = LinearLayoutManager(this)
+        rvPending.adapter = pendingAdapter
+
+        rvCompleted.layoutManager = LinearLayoutManager(this)
+        rvCompleted.adapter = completedAdapter
     }
 
-    private fun saveExam(e: Exam) {
-        AppDataStore.addExam(e)
-        loadData()
-        Toast.makeText(this, "Exam added", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun updateExam(e: Exam) {
-        AppDataStore.updateExam(e)
-        loadData()
-        Toast.makeText(this, "Exam updated", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun deleteExam(id: String) {
-        AppDataStore.deleteExam(id)
-        loadData()
-        Toast.makeText(this, "Exam removed", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun recordGrade(exam: Exam, obtainedMarks: Double) {
-        val updated = exam.copy(obtainedMarks = obtainedMarks)
-        AppDataStore.updateExam(updated)
-        recalculateCourseGrade(exam.courseName)
-        loadData()
-        Toast.makeText(this, getString(R.string.exam_grade_recorded), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun recalculateCourseGrade(courseName: String) {
-        val assignments = AppDataStore.getAssignmentList()
-            .filter { it.courseName == courseName && it.obtainedMarks >= 0 && it.totalMarks > 0 }
-        val exams = AppDataStore.getExamList()
-            .filter { it.courseName == courseName && it.obtainedMarks >= 0 && it.totalMarks > 0 }
+    private fun loadExams() {
+        val allExams = AppDataStore.getExams()
         
-        val totalWeightage = assignments.sumOf { it.weightage } + exams.sumOf { it.weightage }
-        if (totalWeightage <= 0.0) return
-
-        val earnedWeightage = assignments.sumOf { (it.obtainedMarks / it.totalMarks) * it.weightage } +
-                             exams.sumOf { (it.obtainedMarks / it.totalMarks) * it.weightage }
+        pendingList.clear()
+        pendingList.addAll(allExams.filter { !it.isCompleted }.sortedBy { it.date })
         
-        val effectivePct = (earnedWeightage / totalWeightage) * 100.0
-        val newGrade = percentageToGrade(effectivePct)
-        val course = AppDataStore.getCourseList().firstOrNull { it.name == courseName } ?: return
+        completedList.clear()
+        completedList.addAll(allExams.filter { it.isCompleted }.sortedByDescending { it.date })
         
-        AppDataStore.updateCourse(course.copy(
-            grade = newGrade,
-            gradePoints = Course.gradeToPoints(newGrade)
-        ))
+        pendingAdapter.notifyDataSetChanged()
+        completedAdapter.notifyDataSetChanged()
     }
 
-    private fun percentageToGrade(pct: Double): String {
-        return when {
-            pct >= 93.0 -> "A"
-            pct >= 90.0 -> "A-"
-            pct >= 87.0 -> "B+"
-            pct >= 83.0 -> "B"
-            pct >= 80.0 -> "B-"
-            pct >= 77.0 -> "C+"
-            pct >= 73.0 -> "C"
-            pct >= 70.0 -> "C-"
-            pct >= 67.0 -> "D+"
-            pct >= 60.0 -> "D"
-            else -> "F"
-        }
-    }
-
-    // ── Section 6: Dialogs ─────────────────────────────
-    private fun showAddDialog() {
-        val courses = AppDataStore.getCourseNames()
-        if (courses.isEmpty()) {
-            Toast.makeText(this, getString(R.string.exam_error_no_courses_exist), Toast.LENGTH_LONG).show()
-            return
-        }
-
+    private fun showExamDialog(existing: Exam?) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_exam, null)
+        val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
+        val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerExamType)
+        val btnDate = dialogView.findViewById<Button>(R.id.btnExamDate)
+        val etVenue = dialogView.findViewById<EditText>(R.id.etVenue)
+        val etTotalMarks = dialogView.findViewById<EditText>(R.id.etTotalMarks)
+        val etWeightage = dialogView.findViewById<EditText>(R.id.etWeightage)
+        val cbCompleted = dialogView.findViewById<CheckBox>(R.id.cbExamCompleted)
+        val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
+        val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
+
+        val courses = AppDataStore.getCourses()
+        if (courses.isEmpty()) return
+        
+        spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
+        spinnerType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ExamType.values().map { it.name })
+
         val calendar = Calendar.getInstance()
-        var selectedDate = 0L
-        var selectedTime = ""
-
-        val spinnerCourse = dialogView.findViewById<Spinner>(R.id.spinnerExamCourse)
-        val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerExamType)
-        val buttonPickDate = dialogView.findViewById<Button>(R.id.buttonPickExamDate)
-        val textViewDate = dialogView.findViewById<TextView>(R.id.textViewExamDateDisplay)
-        val buttonPickTime = dialogView.findViewById<Button>(R.id.buttonPickExamTime)
-        val textViewTime = dialogView.findViewById<TextView>(R.id.textViewExamTimeDisplay)
-        val editTextWeightage = dialogView.findViewById<EditText>(R.id.editTextExamWeightage)
-        val editTextTotalMarks = dialogView.findViewById<EditText>(R.id.editTextExamTotalMarks)
-        val spinnerDuration = dialogView.findViewById<Spinner>(R.id.spinnerExamDuration)
-        val editTextVenue = dialogView.findViewById<EditText>(R.id.editTextExamVenue)
-        val editTextNotes = dialogView.findViewById<EditText>(R.id.editTextExamNotes)
-
-        spinnerCourse.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        existing?.let { 
+            calendar.timeInMillis = it.date
+            etVenue.setText(it.venue)
+            etTotalMarks.setText(it.totalMarks.toString())
+            etWeightage.setText(it.weightage.toString())
+            cbCompleted.isChecked = it.isCompleted
+            etObtained.setText(it.obtainedMarks?.toString() ?: "")
+            if (it.isCompleted) layoutObtained.visibility = View.VISIBLE
+            
+            val courseIdx = courses.indexOfFirst { c -> c.id == it.courseId }
+            if (courseIdx != -1) spinnerCourses.setSelection(courseIdx)
+            spinnerType.setSelection(it.type.ordinal)
         }
 
-        spinnerType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, Exam.EXAM_TYPES).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
+        val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+        btnDate.text = sdf.format(calendar.time)
 
-        buttonPickDate.setOnClickListener {
+        btnDate.setOnClickListener {
             DatePickerDialog(this, { _, y, m, d ->
-                calendar.set(y, m, d)
-                selectedDate = calendar.timeInMillis
-                textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(calendar.time)
+                calendar.set(Calendar.YEAR, y)
+                calendar.set(Calendar.MONTH, m)
+                calendar.set(Calendar.DAY_OF_MONTH, d)
+                TimePickerDialog(this, { _, hh, mm ->
+                    calendar.set(Calendar.HOUR_OF_DAY, hh)
+                    calendar.set(Calendar.MINUTE, mm)
+                    btnDate.text = sdf.format(calendar.time)
+                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
         }
 
-        buttonPickTime.setOnClickListener {
-            TimePickerDialog(this, { _, h, min ->
-                calendar.set(Calendar.HOUR_OF_DAY, h)
-                calendar.set(Calendar.MINUTE, min)
-                selectedTime = String.format("%02d:%02d", h, min)
-                textViewTime.text = selectedTime
-            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+        cbCompleted.setOnCheckedChangeListener { _, isChecked ->
+            layoutObtained.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
-        val durationOptions = (1..8).map { "${it * 30} minutes" }
-        spinnerDuration.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, durationOptions).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerDuration.setSelection(2)
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.exam_add_title)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Add Exam" else "Edit Exam")
             .setView(dialogView)
             .setPositiveButton("Save", null)
             .setNegativeButton("Cancel", null)
-            .create()
 
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val courseName = spinnerCourse.selectedItem?.toString() ?: ""
-                if (selectedDate == 0L || selectedTime.isEmpty()) {
-                    Toast.makeText(this, getString(R.string.exam_error_no_date), Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                
-                val weightage = editTextWeightage.text.toString().toDoubleOrNull() ?: 0.0
-                val totalMarks = editTextTotalMarks.text.toString().toDoubleOrNull() ?: 100.0
-                val duration = (spinnerDuration.selectedItemPosition + 1) * 30
-
-                val exam = Exam(
-                    id = UUID.randomUUID().toString(),
-                    courseName = courseName,
-                    examType = spinnerType.selectedItem.toString(),
-                    examDate = calendar.timeInMillis,
-                    venue = editTextVenue.text.toString().trim(),
-                    durationMinutes = duration,
-                    notes = editTextNotes.text.toString().trim(),
-                    weightage = weightage,
-                    obtainedMarks = -1.0,
-                    totalMarks = totalMarks
-                )
-                saveExam(exam)
-                dialog.dismiss()
-            }
+        if (existing != null) {
+            dialogBuilder.setNeutralButton("Delete") { _, _ -> confirmDelete(existing) }
         }
-        dialog.show()
+
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val courseId = courses[spinnerCourses.selectedItemPosition].id
+            val type = ExamType.values()[spinnerType.selectedItemPosition]
+            val total = etTotalMarks.text.toString().toDoubleOrNull() ?: 0.0
+            val weight = etWeightage.text.toString().toDoubleOrNull() ?: 0.0
+            val isComp = cbCompleted.isChecked
+            val obtained = if (isComp) etObtained.text.toString().toDoubleOrNull() else null
+
+            val exam = Exam(
+                id = existing?.id ?: UUID.randomUUID().toString(),
+                courseId = courseId,
+                type = type,
+                date = calendar.timeInMillis,
+                venue = etVenue.text.toString(),
+                totalMarks = total,
+                obtainedMarks = obtained,
+                weightage = weight,
+                isCompleted = isComp
+            )
+            AppDataStore.updateExam(exam)
+            
+            if (!exam.isCompleted) {
+                scheduleExamReminder(exam)
+            } else {
+                cancelExamReminder(exam)
+            }
+            
+            updateCourseMarks(courseId)
+            loadExams()
+            alertDialog.dismiss()
+        }
     }
 
-    private fun showEditDialog(exam: Exam) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_exam, null)
-        val calendar = Calendar.getInstance().apply { timeInMillis = exam.examDate }
-        var selectedDate = exam.examDate
-        var selectedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(exam.examDate))
-
-        val spinnerCourse = dialogView.findViewById<Spinner>(R.id.spinnerExamCourse)
-        val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerExamType)
-        val buttonPickDate = dialogView.findViewById<Button>(R.id.buttonPickExamDate)
-        val textViewDate = dialogView.findViewById<TextView>(R.id.textViewExamDateDisplay)
-        val buttonPickTime = dialogView.findViewById<Button>(R.id.buttonPickExamTime)
-        val textViewTime = dialogView.findViewById<TextView>(R.id.textViewExamTimeDisplay)
-        val editTextWeightage = dialogView.findViewById<EditText>(R.id.editTextExamWeightage)
-        val editTextTotalMarks = dialogView.findViewById<EditText>(R.id.editTextExamTotalMarks)
-        val spinnerDuration = dialogView.findViewById<Spinner>(R.id.spinnerExamDuration)
-        val editTextVenue = dialogView.findViewById<EditText>(R.id.editTextExamVenue)
-        val editTextNotes = dialogView.findViewById<EditText>(R.id.editTextExamNotes)
-
-        val courses = AppDataStore.getCourseNames()
-        spinnerCourse.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerCourse.setSelection(courses.indexOf(exam.courseName).coerceAtLeast(0))
-
-        spinnerType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, Exam.EXAM_TYPES).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerType.setSelection(Exam.EXAM_TYPES.indexOf(exam.examType).coerceAtLeast(0))
-
-        textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(exam.examDate))
-        textViewTime.text = selectedTime
-
-        buttonPickDate.setOnClickListener {
-            DatePickerDialog(this, { _, y, m, d ->
-                calendar.set(y, m, d)
-                selectedDate = calendar.timeInMillis
-                textViewDate.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(calendar.time)
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
-        }
-
-        buttonPickTime.setOnClickListener {
-            TimePickerDialog(this, { _, h, min ->
-                calendar.set(Calendar.HOUR_OF_DAY, h)
-                calendar.set(Calendar.MINUTE, min)
-                selectedTime = String.format("%02d:%02d", h, min)
-                textViewTime.text = selectedTime
-            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
-        }
-
-        val durationOptions = (1..8).map { "${it * 30} minutes" }
-        spinnerDuration.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, durationOptions).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spinnerDuration.setSelection((exam.durationMinutes / 30) - 1)
-
-        editTextWeightage.setText(exam.weightage.toString())
-        editTextTotalMarks.setText(exam.totalMarks.toString())
-        editTextVenue.setText(exam.venue)
-        editTextNotes.setText(exam.notes)
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.exam_edit_title)
-            .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val weightage = editTextWeightage.text.toString().toDoubleOrNull() ?: 0.0
-                val totalMarks = editTextTotalMarks.text.toString().toDoubleOrNull() ?: 100.0
-                
-                updateExam(exam.copy(
-                    courseName = spinnerCourse.selectedItem.toString(),
-                    examType = spinnerType.selectedItem.toString(),
-                    examDate = calendar.timeInMillis,
-                    venue = editTextVenue.text.toString().trim(),
-                    durationMinutes = (spinnerDuration.selectedItemPosition + 1) * 30,
-                    notes = editTextNotes.text.toString().trim(),
-                    weightage = weightage,
-                    totalMarks = totalMarks
-                ))
-                dialog.dismiss()
-            }
-        }
-        dialog.show()
-    }
-
-    private fun showGradeDialog(exam: Exam) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_grade_assignment, null) // Reusing assignment grade layout
-        val textViewName = dialogView.findViewById<TextView>(R.id.textViewGradeAssignmentName)
-        val textViewCourse = dialogView.findViewById<TextView>(R.id.textViewGradeAssignmentCourse)
-        val textViewTotal = dialogView.findViewById<TextView>(R.id.textViewGradeTotalMarks)
-        val editTextObtained = dialogView.findViewById<EditText>(R.id.editTextObtainedMarks)
-        val textViewPreview = dialogView.findViewById<TextView>(R.id.textViewGradePercentagePreview)
-
-        textViewName.text = "${exam.examType} Exam"
-        textViewCourse.text = exam.courseName
-        textViewTotal.text = "${exam.totalMarks.toInt()} marks"
-        if (exam.obtainedMarks >= 0) {
-            editTextObtained.setText(exam.obtainedMarks.toInt().toString())
-        }
-
-        editTextObtained.addTextChangedListener(object : android.text.TextWatcher {
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val obtained = s.toString().toDoubleOrNull()
-                if (obtained != null && exam.totalMarks > 0) {
-                    val pct = (obtained / exam.totalMarks) * 100.0
-                    textViewPreview.text = String.format("%.1f%% — %s", pct, percentageToGrade(pct))
-                } else {
-                    textViewPreview.text = "– %"
-                }
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
+    private fun confirmDelete(exam: Exam) {
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.exam_grade_title))
-            .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val obtained = editTextObtained.text.toString().toDoubleOrNull()
-                if (obtained == null || obtained < 0 || obtained > exam.totalMarks) {
-                    Toast.makeText(this, "Invalid marks", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                recordGrade(exam, obtained)
+            .setTitle("Delete Exam")
+            .setMessage("Are you sure you want to delete this exam?")
+            .setPositiveButton("Delete") { _, _ ->
+                cancelExamReminder(exam)
+                AppDataStore.deleteExam(exam.id)
+                updateCourseMarks(exam.courseId)
+                loadExams()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun showDeleteConfirmation(exam: Exam) {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.exam_delete_title))
-            .setMessage(getString(R.string.exam_delete_message, exam.courseName))
-            .setPositiveButton("Delete") { _, _ -> deleteExam(exam.id) }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun updateCourseMarks(courseId: String) {
+        val course = AppDataStore.getCourses().find { it.id == courseId } ?: return
+        val assignments = AppDataStore.getAssignments().filter { it.courseId == courseId && it.isCompleted }
+        val exams = AppDataStore.getExams().filter { it.courseId == courseId && it.isCompleted }
+        
+        val assignmentScore = assignments.sumOf { 
+            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0 
+        }
+        val examScore = exams.sumOf {
+            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0
+        }
+        
+        val updatedCourse = course.copy(marks = assignmentScore + examScore)
+        AppDataStore.updateCourse(updatedCourse)
     }
 
-    private fun updateEmptyState() {
-        val isEmpty = examList.isEmpty()
-        textViewEmptyExams.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        recyclerViewExams.visibility = if (isEmpty) View.GONE else View.VISIBLE
-        if (isEmpty) {
-            textViewEmptyExams.text = if (currentFilter == ExamFilter.UPCOMING) getString(R.string.exam_empty_upcoming) else getString(R.string.exam_empty_past)
+    private fun scheduleExamReminder(exam: Exam) {
+        val triggerTime = exam.date - TimeUnit.HOURS.toMillis(1)
+        if (triggerTime <= System.currentTimeMillis()) return
+
+        val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
+            val course = AppDataStore.getCourses().find { it.id == exam.courseId }
+            putExtra("exam_id", exam.id)
+            putExtra("course_name", course?.name ?: "Unknown Course")
+            putExtra("type", exam.type.name)
+            putExtra("venue", exam.venue ?: "Not set")
+            putExtra("time", SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(exam.date)))
+            `package` = packageName
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, exam.id.hashCode(), intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        try {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        } catch (e: SecurityException) {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         }
     }
 
-    // ── Section 8: Inner Adapter ───────────────────────
-    private inner class ExamsAdapter(
-        private val items: MutableList<Exam>,
-        private val onGradeClick: (Exam) -> Unit,
-        private val onEditClick: (Exam) -> Unit,
-        private val onDeleteClick: (Exam) -> Unit
-    ) : RecyclerView.Adapter<ExamsAdapter.ViewHolder>() {
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val textViewExamItemCourse: TextView = view.findViewById(R.id.textViewExamItemCourse)
-            val textViewExamItemType: TextView = view.findViewById(R.id.textViewExamItemType)
-            val textViewExamCountdown: TextView = view.findViewById(R.id.textViewExamCountdown)
-            val textViewExamItemDate: TextView = view.findViewById(R.id.textViewExamItemDate)
-            val layoutExamVenue: LinearLayout = view.findViewById(R.id.layoutExamVenue)
-            val textViewExamItemVenue: TextView = view.findViewById(R.id.textViewExamItemVenue)
-            val textViewExamWeightage: TextView = view.findViewById(R.id.textViewExamWeightage)
-            val textViewExamMarks: TextView = view.findViewById(R.id.textViewExamMarks)
-            val textViewExamDuration: TextView = view.findViewById(R.id.textViewExamDuration)
-            val textViewExamNotes: TextView = view.findViewById(R.id.textViewExamNotes)
-            val imageButtonGradeExam: ImageButton = view.findViewById(R.id.imageButtonGradeExam)
-            val imageButtonEditExam: ImageButton = view.findViewById(R.id.imageButtonEditExam)
-            val imageButtonDeleteExam: ImageButton = view.findViewById(R.id.imageButtonDeleteExam)
+    private fun cancelExamReminder(exam: Exam) {
+        val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
+            `package` = packageName
         }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_exam, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val exam = items[position]
-            val now = System.currentTimeMillis()
-            val diff = exam.examDate - now
-            
-            holder.textViewExamItemCourse.text = exam.courseName
-            holder.textViewExamItemType.text = exam.examType
-            
-            val countdownText = when {
-                diff < 0 -> getString(R.string.exam_countdown_past)
-                diff < 3_600_000 -> "< 1 hr"
-                diff < 86_400_000 -> "${diff / 3_600_000}h left"
-                diff < 86_400_000 * 2 -> getString(R.string.exam_countdown_today)
-                else -> "${diff / 86_400_000}d left"
-            }
-            holder.textViewExamCountdown.text = countdownText
-            
-            val countdownBg = when {
-                diff < 0 -> R.color.colorStatusComplete
-                diff < 86_400_000 -> R.color.colorStatusCritical
-                diff < 259_200_000 -> R.color.colorStatusWarning
-                else -> R.color.colorStatusNormal
-            }
-            val gd = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 8f.dpToPx().toFloat()
-                setColor(ContextCompat.getColor(holder.itemView.context, countdownBg))
-            }
-            holder.textViewExamCountdown.background = gd
-
-            val sdf = SimpleDateFormat("EEE, MMM dd yyyy 'at' HH:mm", Locale.getDefault())
-            holder.textViewExamItemDate.text = sdf.format(Date(exam.examDate))
-            
-            if (exam.venue.isBlank()) {
-                holder.layoutExamVenue.visibility = View.GONE
-            } else {
-                holder.layoutExamVenue.visibility = View.VISIBLE
-                holder.textViewExamItemVenue.text = exam.venue
-            }
-            
-            holder.textViewExamWeightage.text = "${exam.weightage.toInt()}% of grade"
-            holder.textViewExamMarks.text = if (exam.obtainedMarks < 0) getString(R.string.exam_not_taken)
-                                            else "${exam.obtainedMarks.toInt()}/${exam.totalMarks.toInt()}"
-            holder.textViewExamDuration.text = "${exam.durationMinutes} min"
-            
-            if (exam.notes.isBlank()) {
-                holder.textViewExamNotes.visibility = View.GONE
-            } else {
-                holder.textViewExamNotes.visibility = View.VISIBLE
-                holder.textViewExamNotes.text = exam.notes
-            }
-
-            holder.imageButtonGradeExam.setOnClickListener { onGradeClick(exam) }
-            holder.imageButtonEditExam.setOnClickListener { onEditClick(exam) }
-            holder.imageButtonDeleteExam.setOnClickListener { onDeleteClick(exam) }
-        }
-
-        override fun getItemCount() = items.size
-
-        fun updateList(newItems: List<Exam>) {
-            items.clear()
-            items.addAll(newItems)
-            notifyDataSetChanged()
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, exam.id.hashCode(), intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        pendingIntent?.let {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(it)
         }
     }
 }
-
-private fun Float.dpToPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()

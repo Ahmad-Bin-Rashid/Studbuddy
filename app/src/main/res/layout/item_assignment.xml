@@ -1,145 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cardAssignmentItem"
-    style="@style/Style.StudBuddy.Card"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/card_padding">
+        android:padding="16dp">
 
-        <!-- Row 1: checkbox + title + priority badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/checkBoxAssignmentComplete"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/spacing_small"
-                android:buttonTint="@color/colorPrimary" />
-
             <TextView
-                android:id="@+id/textViewAssignmentTitle"
+                android:id="@+id/tvAssignmentTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="@dimen/text_size_title"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textViewPriorityBadge"
+            <CheckBox
+                android:id="@+id/cbCompleted"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/priority_badge_background"
-                android:paddingStart="@dimen/spacing_small"
-                android:paddingTop="2dp"
-                android:paddingEnd="@dimen/spacing_small"
-                android:paddingBottom="2dp"
-                android:textColor="@color/colorTextOnPrimary"
-                android:textSize="@dimen/text_size_caption" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- Row 2: course + due date -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/textViewAssignmentCourse"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/colorTextSecondary"
-                android:textSize="@dimen/text_size_small" />
-
-            <TextView
-                android:id="@+id/textViewAssignmentDueDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/colorTextSecondary"
-                android:textSize="@dimen/text_size_small" />
-        </LinearLayout>
-
-        <!-- Row 3: description (conditional) -->
         <TextView
-            android:id="@+id/textViewAssignmentDescription"
+            android:id="@+id/tvCourseName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:maxLines="2"
             android:textColor="@color/colorTextSecondary"
-            android:textSize="@dimen/text_size_small"
-            android:visibility="gone" />
+            android:textSize="14sp" />
 
-        <!-- Row 4: weightage + marks + action buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/textViewAssignmentWeightage"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvDueDate"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/chip_semester_inactive"
-                android:paddingStart="@dimen/spacing_small"
-                android:paddingTop="2dp"
-                android:paddingEnd="@dimen/spacing_small"
-                android:paddingBottom="2dp"
-                android:textColor="@color/colorPrimaryLight"
-                android:textSize="@dimen/text_size_caption" />
+                android:layout_weight="1"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
 
             <TextView
-                android:id="@+id/textViewAssignmentMarks"
+                android:id="@+id/tvMarks"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/spacing_small"
-                android:textColor="@color/colorStatusNormal"
-                android:textSize="@dimen/text_size_caption" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/imageButtonGradeAssignment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="4dp"
-                android:src="@drawable/ic_check_circle" />
-
-            <ImageButton
-                android:id="@+id/imageButtonEditAssignment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="4dp"
-                android:src="@drawable/ic_edit" />
-
-            <ImageButton
-                android:id="@+id/imageButtonDeleteAssignment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="4dp"
-                android:src="@drawable/ic_delete" />
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvWeightage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

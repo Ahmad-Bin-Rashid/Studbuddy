@@ -1,124 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Style.StudBuddy.Card"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="@dimen/card_padding">
+        android:padding="12dp">
 
         <View
-            android:id="@+id/viewTimetableColorStripe"
-            android:layout_width="5dp"
+            android:id="@+id/viewColorStripe"
+            android:layout_width="4dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="@dimen/spacing_medium" />
+            android:background="@color/colorPrimary" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textViewTimetableCourseName"
+                android:id="@+id/tvCourseName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="@dimen/text_size_title"
+                android:textSize="16sp"
                 android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_schedule" />
-
-                <TextView
-                    android:id="@+id/textViewTimetableTimeSlot"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="@dimen/text_size_small" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/layoutTimetableRoom"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_location" />
-
-                <TextView
-                    android:id="@+id/textViewTimetableRoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="@dimen/text_size_small" />
-            </LinearLayout>
 
             <TextView
-                android:id="@+id/textViewTimetableDayLabel"
+                android:id="@+id/tvTimeSlot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/colorPrimaryLight"
-                android:textSize="@dimen/text_size_small"
-                android:textStyle="bold" />
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvRoom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvDay"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/textViewTodayBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:background="@drawable/timetable_day_tab_selected"
-                android:paddingStart="@dimen/spacing_small"
-                android:paddingTop="3dp"
-                android:paddingEnd="@dimen/spacing_small"
-                android:paddingBottom="3dp"
-                android:text="@string/timetable_today_badge"
-                android:textColor="@color/colorTextOnPrimary"
-                android:textSize="@dimen/text_size_caption"
-                android:visibility="gone" />
-
-            <ImageButton
-                android:id="@+id/imageButtonEditTimetable"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_edit" />
-
-            <ImageButton
-                android:id="@+id/imageButtonDeleteTimetable"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_delete" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

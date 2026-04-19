@@ -2,11 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    tools:context=".MainActivity">
+    android:background="@color/colorBackground">
 
     <!-- 1. Main Content Area -->
     <LinearLayout
@@ -15,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Toolbar / Header -->
+        <!-- Toolbar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -33,68 +31,92 @@
                 app:tint="@color/white" />
 
             <TextView
-                android:id="@+id/tvToolbarTitle"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:text="@string/dashboard_title"
+                android:text="@string/nav_settings"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/btnEditSemester"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:contentDescription="Edit Semester"
-                android:src="@android:drawable/ic_menu_edit"
-                android:visibility="gone"
-                app:tint="@color/white" />
         </LinearLayout>
 
-        <!-- Dashboard Content -->
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Placeholder for Semester Setup -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardSetupSemester"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:visibility="gone"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="4dp">
-
-                    <Button
-                        android:id="@+id/btnSetupSemester"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:text="@string/setup_semester"
-                        android:textAllCaps="false"
-                        android:textColor="@color/colorPrimary" />
-                </androidx.cardview.widget.CardView>
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
-                    android:id="@+id/dashboardItemsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            </LinearLayout>
-        </ScrollView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Appearance"
+                        android:textColor="@color/colorPrimary"
+                        android:textStyle="bold" />
+
+                    <CheckBox
+                        android:id="@+id/cbDarkMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Enable Dark Mode" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Notifications"
+                        android:textColor="@color/colorPrimary"
+                        android:textStyle="bold" />
+
+                    <CheckBox
+                        android:id="@+id/cbLectureReminders"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:checked="true"
+                        android:text="Lecture Reminders" />
+
+                    <CheckBox
+                        android:id="@+id/cbAssignmentReminders"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Assignment Reminders" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- 2. Overlay Sidebar (Hidden by default) -->
+    <!-- 2. Overlay Sidebar -->
     <View
         android:id="@+id/sidebarDim"
         android:layout_width="match_parent"
@@ -116,7 +138,6 @@
             android:background="@color/white"
             android:orientation="vertical">
 
-            <!-- Sidebar Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="160dp"
@@ -141,7 +162,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Navigation Menu -->
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -153,57 +173,19 @@
                     android:orientation="vertical"
                     android:padding="8dp">
 
-                    <TextView
-                        android:id="@+id/navHome"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_home" />
-
-                    <TextView
-                        android:id="@+id/navCourses"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_courses" />
-
-                    <TextView
-                        android:id="@+id/navAttendance"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_attendance" />
-
-                    <TextView
-                        android:id="@+id/navTimetable"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_timetable" />
-
-                    <TextView
-                        android:id="@+id/navAssignments"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_assignments" />
-
-                    <TextView
-                        android:id="@+id/navExams"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_exams" />
-
-                    <TextView
-                        android:id="@+id/navGpa"
-                        style="@style/NavMenuItem"
-                        android:text="@string/nav_gpa" />
+                    <TextView android:id="@+id/navHome" style="@style/NavMenuItem" android:text="@string/nav_home" />
+                    <TextView android:id="@+id/navCourses" style="@style/NavMenuItem" android:text="@string/nav_courses" />
+                    <TextView android:id="@+id/navAttendance" style="@style/NavMenuItem" android:text="@string/nav_attendance" />
+                    <TextView android:id="@+id/navTimetable" style="@style/NavMenuItem" android:text="@string/nav_timetable" />
+                    <TextView android:id="@+id/navAssignments" style="@style/NavMenuItem" android:text="@string/nav_assignments" />
+                    <TextView android:id="@+id/navExams" style="@style/NavMenuItem" android:text="@string/nav_exams" />
+                    <TextView android:id="@+id/navGpa" style="@style/NavMenuItem" android:text="@string/nav_gpa" />
 
                 </LinearLayout>
             </ScrollView>
 
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/colorDivider" />
-
-            <!-- Footer Menu -->
-            <TextView
-                android:id="@+id/navSettings"
-                style="@style/NavMenuItem"
-                android:layout_margin="8dp"
-                android:text="@string/nav_settings" />
-
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/colorDivider" />
+            <TextView android:id="@+id/navSettings" style="@style/NavMenuItem" android:layout_margin="8dp" android:text="@string/nav_settings" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
