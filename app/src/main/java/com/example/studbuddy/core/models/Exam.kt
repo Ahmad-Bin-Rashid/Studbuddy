@@ -2,45 +2,46 @@ package com.example.studbuddy.core.models
 
 import org.json.JSONObject
 
+enum class ExamType { QUIZ, MIDTERM, FINAL }
+
 data class Exam(
     val id: String,
-    val courseName: String,
-    val examType: String,
-    val examDate: Long,
-    val venue: String,
-    val durationMinutes: Int,
-    val notes: String,
-    val weightage: Double,      // 0.0–100.0
-    val obtainedMarks: Double,  // -1.0 = not taken yet
-    val totalMarks: Double
+    val courseId: String,
+    val type: ExamType,
+    val date: Long,
+    val venue: String?,
+    val totalMarks: Double,
+    val obtainedMarks: Double?,
+    val weightage: Double,
+    val isCompleted: Boolean
 ) {
-    fun toJson(): JSONObject = JSONObject().apply {
-        put("id", id)
-        put("courseName", courseName)
-        put("examType", examType)
-        put("examDate", examDate)
-        put("venue", venue)
-        put("durationMinutes", durationMinutes)
-        put("notes", notes)
-        put("weightage", weightage)
-        put("obtainedMarks", obtainedMarks)
-        put("totalMarks", totalMarks)
+    fun toJson(): JSONObject {
+        val obj = JSONObject()
+        obj.put("id", id)
+        obj.put("courseId", courseId)
+        obj.put("type", type.name)
+        obj.put("date", date)
+        obj.put("venue", venue ?: JSONObject.NULL)
+        obj.put("totalMarks", totalMarks)
+        obj.put("obtainedMarks", obtainedMarks ?: JSONObject.NULL)
+        obj.put("weightage", weightage)
+        obj.put("isCompleted", isCompleted)
+        return obj
     }
 
     companion object {
-        val EXAM_TYPES = listOf("Quiz", "Midterm", "Final", "Lab", "Presentation")
-
-        fun fromJson(obj: JSONObject): Exam = Exam(
-            id = obj.getString("id"),
-            courseName = obj.getString("courseName"),
-            examType = obj.getString("examType"),
-            examDate = obj.getLong("examDate"),
-            venue = obj.optString("venue", ""),
-            durationMinutes = obj.optInt("durationMinutes", 90),
-            notes = obj.optString("notes", ""),
-            weightage = obj.optDouble("weightage", 0.0),
-            obtainedMarks = obj.optDouble("obtainedMarks", -1.0),
-            totalMarks = obj.optDouble("totalMarks", 100.0)
-        )
+        fun fromJson(obj: JSONObject): Exam {
+            return Exam(
+                obj.getString("id"),
+                obj.getString("courseId"),
+                ExamType.valueOf(obj.getString("type")),
+                obj.getLong("date"),
+                if (obj.isNull("venue")) null else obj.getString("venue"),
+                obj.getDouble("totalMarks"),
+                if (obj.isNull("obtainedMarks")) null else obj.getDouble("obtainedMarks"),
+                obj.getDouble("weightage"),
+                obj.getBoolean("isCompleted")
+            )
+        }
     }
 }

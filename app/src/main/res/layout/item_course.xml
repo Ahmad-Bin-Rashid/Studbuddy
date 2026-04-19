@@ -1,116 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Style.StudBuddy.Card"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/card_padding">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <View
-            android:id="@+id/viewCourseColorStripe"
-            android:layout_width="5dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="@dimen/spacing_medium" />
+        <TextView
+            android:id="@+id/tvCourseName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCourseInstructor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvSemester"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"/>
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/textViewCourseItemName"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvCreditHours"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textColor="@color/colorTextPrimary"
-                android:textSize="@dimen/text_size_title"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/textViewCourseItemCredits"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3 credits"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="@dimen/text_size_small" />
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="12dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@color/colorDivider" />
-
-                <TextView
-                    android:id="@+id/textViewCourseItemSemester"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorTextSecondary"
-                    android:textSize="@dimen/text_size_small" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/textViewCourseItemGrade"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:minWidth="48dp"
-                android:textColor="@color/colorPrimary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/textViewCourseItemGradePoints"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
+                android:layout_weight="1"
                 android:textColor="@color/colorTextSecondary"
-                android:textSize="@dimen/text_size_caption" />
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvMarks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvGrade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvGradePoints"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/spacing_small"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/imageButtonEditCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="@dimen/spacing_small"
-                android:src="@drawable/ic_edit" />
-
-            <ImageButton
-                android:id="@+id/imageButtonDeleteCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="@dimen/spacing_small"
-                android:src="@drawable/ic_delete" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

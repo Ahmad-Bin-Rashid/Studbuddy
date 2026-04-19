@@ -2,42 +2,37 @@ package com.example.studbuddy.core.models
 
 import org.json.JSONObject
 
-/**
- * Model representing a Timetable entry.
- */
 data class TimetableEntry(
     val id: String,
-    val courseName: String,
-    val dayOfWeek: Int,
-    val startTime: String,
-    val endTime: String,
+    val courseId: String,       // Reference to Course
+    val dayOfWeek: Int,         // 1=Monday ... 7=Sunday
+    val startTime: String,      // "HH:mm"
+    val endTime: String,        // "HH:mm"
     val room: String,
-    val colorHex: String
+    val color: String
 ) {
     fun toJson(): JSONObject {
-        val json = JSONObject()
-        json.put("id", id)
-        json.put("courseName", courseName)
-        json.put("dayOfWeek", dayOfWeek)
-        json.put("startTime", startTime)
-        json.put("endTime", endTime)
-        json.put("room", room)
-        json.put("colorHex", colorHex)
-        return json
+        val obj = JSONObject()
+        obj.put("id", id)
+        obj.put("courseId", courseId)
+        obj.put("dayOfWeek", dayOfWeek)
+        obj.put("startTime", startTime)
+        obj.put("endTime", endTime)
+        obj.put("room", room)
+        obj.put("color", color)
+        return obj
     }
 
     companion object {
-        val DAY_NAMES = listOf("", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-
         fun fromJson(obj: JSONObject): TimetableEntry {
             return TimetableEntry(
-                id = obj.getString("id"),
-                courseName = obj.getString("courseName"),
-                dayOfWeek = obj.getInt("dayOfWeek"),
-                startTime = obj.getString("startTime"),
-                endTime = obj.getString("endTime"),
-                room = obj.getString("room"),
-                colorHex = obj.getString("colorHex")
+                obj.getString("id"),
+                obj.getString("courseId"),
+                obj.getInt("dayOfWeek"),
+                obj.getString("startTime"),
+                obj.getString("endTime"),
+                obj.getString("room"),
+                obj.getString("color")
             )
         }
     }
