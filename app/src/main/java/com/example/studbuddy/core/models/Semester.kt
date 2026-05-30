@@ -1,9 +1,13 @@
 package com.example.studbuddy.core.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import org.json.JSONObject
 import java.util.UUID
 
+@Entity(tableName = "semesters")
 data class Semester(
+    @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val startDate: Long,
