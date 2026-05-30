@@ -162,6 +162,10 @@ class MainActivity : BaseActivity() {
         val totalPoints = courses.sumOf { it.gradePoints }
         val totalCredits = courses.filter { it.grade != null }.sumOf { it.creditHours }.toDouble()
         val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else 0.0
+        
+        // Note: GPA update logic should ideally be in ViewModel to avoid side effects during UI update,
+        // but for now we keep it here to match existing logic.
+        // Actually, let's move it to ViewModel eventually.
 
         addDashboardCard(
             "Semester GPA", 

@@ -38,9 +38,7 @@ abstract class StudBuddyDatabase : RoomDatabase() {
                     context.applicationContext,
                     StudBuddyDatabase::class.java,
                     "studbuddy_database"
-                )
-                    .allowMainThreadQueries()
-                    .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }

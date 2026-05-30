@@ -9,8 +9,8 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.core.AppDataStore
 import com.example.studbuddy.core.models.Assignment
+import com.example.studbuddy.core.models.Course
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -20,6 +20,8 @@ class AssignmentsAdapter(
     private val onStatusChanged: (Assignment, Boolean) -> Unit,
     private val onItemClicked: (Assignment) -> Unit
 ) : RecyclerView.Adapter<AssignmentsAdapter.AssignmentViewHolder>() {
+
+    private var courseList: List<Course> = emptyList()
 
     class AssignmentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvAssignmentTitle)
@@ -47,7 +49,7 @@ class AssignmentsAdapter(
         val obtained = assignment.obtainedMarks?.let { String.format("%.1f", it) } ?: "-"
         holder.tvMarks.text = "Marks: $obtained / ${assignment.totalMarks}"
         
-        val course = AppDataStore.getCourses().find { it.id == assignment.courseId }
+        val course = courseList.find { it.id == assignment.courseId }
         holder.tvCourse.text = course?.name ?: "Unknown Course"
 
         // Highlight due date in red if 1 day or less is left (and not completed)
@@ -75,9 +77,10 @@ class AssignmentsAdapter(
 
     override fun getItemCount(): Int = assignments.size
 
-    fun updateList(newList: List<Assignment>) {
+    fun updateData(newAssignments: List<Assignment>, newCourses: List<Course>) {
         assignments.clear()
-        assignments.addAll(newList)
+        assignments.addAll(newAssignments)
+        courseList = newCourses
         notifyDataSetChanged()
     }
 }

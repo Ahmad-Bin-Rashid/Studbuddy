@@ -7,13 +7,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.TimetableEntry
 
 class TimetableAdapter(
-    private val entries: List<TimetableEntry>,
+    private var entries: List<TimetableEntry>,
     private val onItemClick: (TimetableEntry) -> Unit
 ) : RecyclerView.Adapter<TimetableAdapter.TimetableViewHolder>() {
+
+    private var courseList: List<Course> = emptyList()
 
     class TimetableViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val viewColorStripe: View = view.findViewById(R.id.viewColorStripe)
@@ -32,8 +34,7 @@ class TimetableAdapter(
     override fun onBindViewHolder(holder: TimetableViewHolder, position: Int) {
         val entry = entries[position]
         
-        val courses = AppDataStore.getCourses()
-        val course = courses.find { it.id == entry.courseId }
+        val course = courseList.find { it.id == entry.courseId }
         
         holder.tvCourseName.text = course?.name ?: "Unknown Course"
         holder.tvTimeSlot.text = "${entry.startTime} - ${entry.endTime}"
@@ -50,4 +51,10 @@ class TimetableAdapter(
     }
 
     override fun getItemCount(): Int = entries.size
+
+    fun updateData(newEntries: List<TimetableEntry>, newCourses: List<Course>) {
+        entries = newEntries
+        courseList = newCourses
+        notifyDataSetChanged()
+    }
 }

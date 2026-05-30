@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,6 +17,8 @@ class ExamAdapter(
     private val exams: MutableList<Exam>,
     private val onItemClicked: (Exam) -> Unit
 ) : RecyclerView.Adapter<ExamAdapter.ExamViewHolder>() {
+
+    private var courseList: List<Course> = emptyList()
 
     class ExamViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvExamType: TextView = view.findViewById(R.id.tvExamType)
@@ -40,7 +42,7 @@ class ExamAdapter(
         holder.tvExamType.text = exam.type.name
         holder.tvExamDate.text = sdf.format(Date(exam.date))
         
-        val course = AppDataStore.getCourses().find { it.id == exam.courseId }
+        val course = courseList.find { it.id == exam.courseId }
         holder.tvCourseName.text = course?.name ?: "Unknown Course"
         holder.tvVenue.text = "Venue: ${exam.venue ?: "Not set"}"
         
@@ -67,9 +69,10 @@ class ExamAdapter(
 
     override fun getItemCount(): Int = exams.size
 
-    fun updateList(newList: List<Exam>) {
+    fun updateData(newExams: List<Exam>, newCourses: List<Course>) {
         exams.clear()
-        exams.addAll(newList)
+        exams.addAll(newExams)
+        courseList = newCourses
         notifyDataSetChanged()
     }
 }

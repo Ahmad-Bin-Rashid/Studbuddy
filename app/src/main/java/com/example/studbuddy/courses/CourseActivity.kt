@@ -6,11 +6,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.BaseActivity
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import java.util.*
 
@@ -19,6 +21,10 @@ class CourseActivity : BaseActivity() {
     private lateinit var recyclerViewCourses: RecyclerView
     private lateinit var courseAdapter: CourseAdapter
     private val courseList = mutableListOf<Course>()
+
+    private val viewModel: CourseViewModel by viewModels {
+        ViewModelFactory((application as StudBuddyApp).repository)
+    }
 
     private val gradeMap = mapOf(
         "Select Grade" to -1.0,
@@ -42,16 +48,12 @@ class CourseActivity : BaseActivity() {
         setupViews()
         setupSidebar()
         setupRecyclerView()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadCourses()
+        observeViewModel()
     }
 
     private fun setupViews() {
         findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
-            val semester = AppDataStore.getSemester()
+            val semester = viewModel.semester.value
             if (semester == null) {
                 Toast.makeText(this, "Please setup a semester first", Toast.LENGTH_SHORT).show()
             } else {
@@ -69,11 +71,13 @@ class CourseActivity : BaseActivity() {
         recyclerViewCourses.adapter = courseAdapter
     }
 
-    private fun loadCourses() {
-        val courses = AppDataStore.getCourses()
-        courseList.clear()
-        courseList.addAll(courses)
-        courseAdapter.notifyDataSetChanged()
+    private fun observeViewModel() {
+        viewModel.courses.observe(this) { courses ->
+            courseAdapter.updateData(courses, viewModel.semester.value)
+        }
+        viewModel.semester.observe(this) { semester ->
+            courseAdapter.updateData(viewModel.courses.value ?: emptyList(), semester)
+        }
     }
 
     private fun showCourseDialog(existingCourse: Course?) {
@@ -123,7 +127,7 @@ class CourseActivity : BaseActivity() {
                 val selectedGrade = spinnerGrade.selectedItem.toString()
                 val basePoints = gradeMap[selectedGrade] ?: -1.0
                 
-                val semester = AppDataStore.getSemester()
+                val semester = viewModel.semester.value
                 
                 if (name.isNotEmpty() && credits > 0 && semester != null) {
                     val gradePoints = if (basePoints >= 0) basePoints * credits else 0.0
@@ -141,38 +145,20 @@ class CourseActivity : BaseActivity() {
                     )
                     
                     if (existingCourse == null) {
-                        AppDataStore.addCourse(course)
+                        viewModel.addCourse(course)
                     } else {
-                        AppDataStore.updateCourse(course)
+                        viewModel.updateCourse(course)
                     }
                     
-                    updateSemesterGpa()
-                    
-                    // Send broadcast to update GPA Activity
+                    // Send broadcast to update GPA Activity (legacy)
                     val intent = Intent("com.example.studbuddy.GPA_UPDATE")
                     intent.`package` = packageName
                     sendBroadcast(intent)
-
-                    loadCourses()
                 } else {
                     Toast.makeText(this, "Please enter valid details", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun updateSemesterGpa() {
-        val semester = AppDataStore.getSemester() ?: return
-        val courses = AppDataStore.getCourses()
-        
-        val coursesWithGrades = courses.filter { it.grade != null }
-        val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
-        val totalCredits = coursesWithGrades.sumOf { it.creditHours }
-        
-        val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else 0.0
-        
-        val updatedSemester = semester.copy(gpa = calculatedGpa)
-        AppDataStore.saveSemester(updatedSemester)
     }
 }

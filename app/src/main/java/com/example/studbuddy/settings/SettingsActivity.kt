@@ -12,7 +12,6 @@ import androidx.cardview.widget.CardView
 import com.example.studbuddy.MainActivity
 import com.example.studbuddy.R
 import com.example.studbuddy.attendance.AttendanceActivity
-import com.example.studbuddy.core.AppDataStore
 import com.example.studbuddy.courses.CourseActivity
 import com.example.studbuddy.exams.ExamsActivity
 import com.example.studbuddy.gpa.GpaActivity

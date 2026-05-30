@@ -3,6 +3,8 @@ package com.example.studbuddy
 import com.example.studbuddy.core.db.*
 import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -34,5 +36,14 @@ class RepositoryTest {
 
         val result = repository.getSemester()
         assertEquals("Test Sem", result?.name)
+    }
+
+    @Test
+    fun testGetSemesterFlow() = runBlocking {
+        val semester = Semester(name = "Flow Sem", startDate = 0, endDate = 0)
+        `when`(semesterDao.getSemesterFlow()).thenReturn(flowOf(semester))
+
+        val result = repository.getSemesterFlow().first()
+        assertEquals("Flow Sem", result?.name)
     }
 }

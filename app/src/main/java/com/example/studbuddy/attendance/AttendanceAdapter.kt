@@ -1,6 +1,5 @@
 package com.example.studbuddy.attendance
 
-import android.content.Context
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -11,13 +10,15 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
 
 class AttendanceAdapter(
     private val courses: MutableList<Course>,
     private val onCourseClick: (Course) -> Unit
 ) : RecyclerView.Adapter<AttendanceAdapter.AttendanceViewHolder>() {
+
+    private var attendanceRecords: List<AttendanceRecord> = emptyList()
 
     class AttendanceViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val card: CardView = view.findViewById(R.id.cardAttendance)
@@ -39,12 +40,10 @@ class AttendanceAdapter(
         
         holder.tvCourseName.text = course.name
         
-        val records = AppDataStore.getAttendance().filter { it.courseId == course.id }
+        val records = attendanceRecords.filter { it.courseId == course.id }
         val presentCount = records.count { it.status == "PRESENT" }
         val totalAttended = records.size
         
-        // Let's assume Course model has these now, or we fetch them from a config
-        // For simplicity in this implementation, I'll use default values if not present
         val threshold = 75.0 // Default threshold
         
         val percentage = if (totalAttended > 0) (presentCount.toDouble() / totalAttended) * 100 else 100.0
@@ -71,9 +70,10 @@ class AttendanceAdapter(
 
     override fun getItemCount(): Int = courses.size
 
-    fun updateList(newList: List<Course>) {
+    fun updateData(newCourses: List<Course>, newRecords: List<AttendanceRecord>) {
         courses.clear()
-        courses.addAll(newList)
+        courses.addAll(newCourses)
+        attendanceRecords = newRecords
         notifyDataSetChanged()
     }
 }

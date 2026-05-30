@@ -11,11 +11,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.BaseActivity
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.ExamType
 import java.text.SimpleDateFormat
@@ -32,6 +34,10 @@ class ExamsActivity : BaseActivity() {
     private val pendingList = mutableListOf<Exam>()
     private val completedList = mutableListOf<Exam>()
 
+    private val viewModel: ExamsViewModel by viewModels {
+        ViewModelFactory((application as StudBuddyApp).repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exams)
@@ -39,16 +45,12 @@ class ExamsActivity : BaseActivity() {
         setupSidebar()
         setupViews()
         setupRecyclerViews()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadExams()
+        observeViewModel()
     }
 
     private fun setupViews() {
         findViewById<Button>(R.id.btnAddExam).setOnClickListener {
-            if (AppDataStore.getCourses().isEmpty()) {
+            if (viewModel.courses.value.isNullOrEmpty()) {
                 Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showExamDialog(null)
@@ -70,17 +72,21 @@ class ExamsActivity : BaseActivity() {
         rvCompleted.adapter = completedAdapter
     }
 
-    private fun loadExams() {
-        val allExams = AppDataStore.getExams()
+    private fun observeViewModel() {
+        viewModel.exams.observe(this) { allExams ->
+            updateAdapters(allExams, viewModel.courses.value ?: emptyList())
+        }
+        viewModel.courses.observe(this) { allCourses ->
+            updateAdapters(viewModel.exams.value ?: emptyList(), allCourses)
+        }
+    }
+
+    private fun updateAdapters(allExams: List<Exam>, allCourses: List<com.example.studbuddy.core.models.Course>) {
+        val pending = allExams.filter { !it.isCompleted }.sortedBy { it.date }
+        val completed = allExams.filter { it.isCompleted }.sortedByDescending { it.date }
         
-        pendingList.clear()
-        pendingList.addAll(allExams.filter { !it.isCompleted }.sortedBy { it.date })
-        
-        completedList.clear()
-        completedList.addAll(allExams.filter { it.isCompleted }.sortedByDescending { it.date })
-        
-        pendingAdapter.notifyDataSetChanged()
-        completedAdapter.notifyDataSetChanged()
+        pendingAdapter.updateData(pending, allCourses)
+        completedAdapter.updateData(completed, allCourses)
     }
 
     private fun showExamDialog(existing: Exam?) {
@@ -95,7 +101,7 @@ class ExamsActivity : BaseActivity() {
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
-        val courses = AppDataStore.getCourses()
+        val courses = viewModel.courses.value ?: emptyList()
         if (courses.isEmpty()) return
         
         spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
@@ -150,7 +156,10 @@ class ExamsActivity : BaseActivity() {
         alertDialog.show()
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val courseId = courses[spinnerCourses.selectedItemPosition].id
+            val selectedCourseIdx = spinnerCourses.selectedItemPosition
+            if (selectedCourseIdx == -1) return@setOnClickListener
+            
+            val courseId = courses[selectedCourseIdx].id
             val type = ExamType.values()[spinnerType.selectedItemPosition]
             val total = etTotalMarks.text.toString().toDoubleOrNull() ?: 0.0
             val weight = etWeightage.text.toString().toDoubleOrNull() ?: 0.0
@@ -168,7 +177,7 @@ class ExamsActivity : BaseActivity() {
                 weightage = weight,
                 isCompleted = isComp
             )
-            AppDataStore.updateExam(exam)
+            viewModel.updateExam(exam)
             
             if (!exam.isCompleted) {
                 scheduleExamReminder(exam)
@@ -176,8 +185,6 @@ class ExamsActivity : BaseActivity() {
                 cancelExamReminder(exam)
             }
             
-            updateCourseMarks(courseId)
-            loadExams()
             alertDialog.dismiss()
         }
     }
@@ -188,28 +195,10 @@ class ExamsActivity : BaseActivity() {
             .setMessage("Are you sure you want to delete this exam?")
             .setPositiveButton("Delete") { _, _ ->
                 cancelExamReminder(exam)
-                AppDataStore.deleteExam(exam.id)
-                updateCourseMarks(exam.courseId)
-                loadExams()
+                viewModel.deleteExam(exam)
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun updateCourseMarks(courseId: String) {
-        val course = AppDataStore.getCourses().find { it.id == courseId } ?: return
-        val assignments = AppDataStore.getAssignments().filter { it.courseId == courseId && it.isCompleted }
-        val exams = AppDataStore.getExams().filter { it.courseId == courseId && it.isCompleted }
-        
-        val assignmentScore = assignments.sumOf { 
-            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0 
-        }
-        val examScore = exams.sumOf {
-            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0
-        }
-        
-        val updatedCourse = course.copy(marks = assignmentScore + examScore)
-        AppDataStore.updateCourse(updatedCourse)
     }
 
     private fun scheduleExamReminder(exam: Exam) {
@@ -217,7 +206,7 @@ class ExamsActivity : BaseActivity() {
         if (triggerTime <= System.currentTimeMillis()) return
 
         val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
-            val course = AppDataStore.getCourses().find { it.id == exam.courseId }
+            val course = viewModel.courses.value?.find { it.id == exam.courseId }
             putExtra("exam_id", exam.id)
             putExtra("course_name", course?.name ?: "Unknown Course")
             putExtra("type", exam.type.name)

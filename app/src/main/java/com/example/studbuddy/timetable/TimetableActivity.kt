@@ -5,11 +5,13 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.BaseActivity
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.TimetableEntry
 import java.util.*
 
@@ -18,22 +20,22 @@ class TimetableActivity : BaseActivity() {
     private lateinit var recyclerViewTimetable: RecyclerView
     private lateinit var dayTimetableAdapter: DayTimetableAdapter
 
+    private val viewModel: TimetableViewModel by viewModels {
+        ViewModelFactory((application as StudBuddyApp).repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_timetable)
 
         setupViews()
         setupSidebar()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadTimetable()
+        observeViewModel()
     }
 
     private fun setupViews() {
         findViewById<Button>(R.id.btnAddTimetableEntry).setOnClickListener {
-            if (AppDataStore.getCourses().isEmpty()) {
+            if (viewModel.courses.value.isNullOrEmpty()) {
                 Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showTimetableDialog(null)
@@ -44,11 +46,18 @@ class TimetableActivity : BaseActivity() {
         recyclerViewTimetable.layoutManager = LinearLayoutManager(this)
     }
 
-    private fun loadTimetable() {
-        val entries = AppDataStore.getTimetable()
+    private fun observeViewModel() {
+        viewModel.timetable.observe(this) { entries ->
+            updateAdapter(entries, viewModel.courses.value ?: emptyList())
+        }
+        viewModel.courses.observe(this) { courses ->
+            updateAdapter(viewModel.timetable.value ?: emptyList(), courses)
+        }
+    }
+
+    private fun updateAdapter(entries: List<TimetableEntry>, courses: List<com.example.studbuddy.core.models.Course>) {
         val dayMap = entries.groupBy { it.dayOfWeek }
-        
-        dayTimetableAdapter = DayTimetableAdapter(dayMap) { entry ->
+        dayTimetableAdapter = DayTimetableAdapter(dayMap, courses) { entry ->
             showTimetableDialog(entry)
         }
         recyclerViewTimetable.adapter = dayTimetableAdapter
@@ -62,7 +71,7 @@ class TimetableActivity : BaseActivity() {
         val btnEnd = dialogView.findViewById<Button>(R.id.btnEndTime)
         val etRoom = dialogView.findViewById<EditText>(R.id.etRoom)
 
-        val courses = AppDataStore.getCourses()
+        val courses = viewModel.courses.value ?: emptyList()
         spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
 
         val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
@@ -105,8 +114,7 @@ class TimetableActivity : BaseActivity() {
 
         if (existing != null) {
             dialog.setNeutralButton("Delete") { _, _ ->
-                AppDataStore.deleteTimetableEntry(existing.id)
-                loadTimetable()
+                viewModel.deleteTimetableEntry(existing.id)
                 Toast.makeText(this, "Class deleted", Toast.LENGTH_SHORT).show()
             }
         }
@@ -115,7 +123,10 @@ class TimetableActivity : BaseActivity() {
         alertDialog.show()
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val courseId = courses[spinnerCourses.selectedItemPosition].id
+            val selectedCourseIndex = spinnerCourses.selectedItemPosition
+            if (selectedCourseIndex == -1) return@setOnClickListener
+            
+            val courseId = courses[selectedCourseIndex].id
             val day = spinnerDay.selectedItemPosition + 1
             val room = etRoom.text.toString().trim()
 
@@ -131,12 +142,10 @@ class TimetableActivity : BaseActivity() {
                 )
                 
                 if (existing == null) {
-                    AppDataStore.addTimetableEntry(entry)
+                    viewModel.addTimetableEntry(entry)
                 } else {
-                    AppDataStore.updateTimetableEntry(entry)
+                    viewModel.updateTimetableEntry(entry)
                 }
-                
-                loadTimetable()
                 alertDialog.dismiss()
             } else {
                 Toast.makeText(this, "Please enter a room/place", Toast.LENGTH_SHORT).show()

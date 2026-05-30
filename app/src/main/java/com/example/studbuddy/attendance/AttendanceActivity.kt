@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.BaseActivity
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
 import java.util.*
@@ -20,6 +22,10 @@ class AttendanceActivity : BaseActivity() {
     private lateinit var attendanceAdapter: AttendanceAdapter
     private val courseList = mutableListOf<Course>()
 
+    private val viewModel: AttendanceViewModel by viewModels {
+        ViewModelFactory((application as StudBuddyApp).repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance)
@@ -27,16 +33,12 @@ class AttendanceActivity : BaseActivity() {
         setupViews()
         setupSidebar()
         setupRecyclerView()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadData()
+        observeViewModel()
     }
 
     private fun setupViews() {
         findViewById<Button>(R.id.btnMarkAttendance).setOnClickListener {
-            if (AppDataStore.getCourses().isEmpty()) {
+            if (viewModel.courses.value.isNullOrEmpty()) {
                 Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showMarkAttendanceDialog(null)
@@ -53,11 +55,13 @@ class AttendanceActivity : BaseActivity() {
         recyclerViewAttendance.adapter = attendanceAdapter
     }
 
-    private fun loadData() {
-        val courses = AppDataStore.getCourses()
-        courseList.clear()
-        courseList.addAll(courses)
-        attendanceAdapter.notifyDataSetChanged()
+    private fun observeViewModel() {
+        viewModel.courses.observe(this) { courses ->
+            attendanceAdapter.updateData(courses, viewModel.attendance.value ?: emptyList())
+        }
+        viewModel.attendance.observe(this) { records ->
+            attendanceAdapter.updateData(viewModel.courses.value ?: emptyList(), records)
+        }
     }
 
     private fun showMarkAttendanceDialog(existingRecord: AttendanceRecord?) {
@@ -65,7 +69,7 @@ class AttendanceActivity : BaseActivity() {
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val rgStatus = dialogView.findViewById<RadioGroup>(R.id.rgStatus)
 
-        val courses = AppDataStore.getCourses()
+        val courses = viewModel.courses.value ?: emptyList()
         spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
 
         existingRecord?.let { record ->
@@ -85,7 +89,10 @@ class AttendanceActivity : BaseActivity() {
             .setTitle(if (existingRecord == null) "Mark Attendance" else "Update Attendance")
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
-                val courseId = courses[spinnerCourses.selectedItemPosition].id
+                val selectedIdx = spinnerCourses.selectedItemPosition
+                if (selectedIdx == -1) return@setPositiveButton
+                
+                val courseId = courses[selectedIdx].id
                 val status = when (rgStatus.checkedRadioButtonId) {
                     R.id.rbPresent -> "PRESENT"
                     R.id.rbAbsent -> "ABSENT"
@@ -101,18 +108,16 @@ class AttendanceActivity : BaseActivity() {
                 )
                 
                 if (existingRecord == null) {
-                    AppDataStore.addAttendanceRecord(record)
+                    viewModel.addAttendanceRecord(record)
                 } else {
-                    AppDataStore.updateAttendanceRecord(record)
+                    viewModel.updateAttendanceRecord(record)
                 }
-                loadData()
             }
             .setNegativeButton("Cancel", null)
 
         if (existingRecord != null) {
             dialogBuilder.setNeutralButton("Delete") { _, _ ->
-                AppDataStore.deleteAttendanceRecord(existingRecord.id)
-                loadData()
+                viewModel.deleteAttendanceRecord(existingRecord.id)
                 Toast.makeText(this, "Record deleted", Toast.LENGTH_SHORT).show()
             }
         }
@@ -127,7 +132,9 @@ class AttendanceActivity : BaseActivity() {
 
         tvCourseName.text = "History for ${course.name}"
         
-        val records = AppDataStore.getAttendance().filter { it.courseId == course.id }.sortedByDescending { it.dateTime }
+        val records = (viewModel.attendance.value ?: emptyList())
+            .filter { it.courseId == course.id }
+            .sortedByDescending { it.dateTime }
         
         val historyDialog = AlertDialog.Builder(this)
             .setView(dialogView)

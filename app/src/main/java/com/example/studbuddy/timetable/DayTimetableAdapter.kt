@@ -7,10 +7,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.TimetableEntry
 
 class DayTimetableAdapter(
     private val dayMap: Map<Int, List<TimetableEntry>>,
+    private val courseList: List<Course>,
     private val onEntryClick: (TimetableEntry) -> Unit
 ) : RecyclerView.Adapter<DayTimetableAdapter.DayViewHolder>() {
 
@@ -41,7 +43,10 @@ class DayTimetableAdapter(
             holder.tvEmpty.visibility = View.GONE
             holder.rvInner.visibility = View.VISIBLE
             holder.rvInner.layoutManager = LinearLayoutManager(holder.itemView.context)
-            holder.rvInner.adapter = TimetableAdapter(entries, onEntryClick)
+            
+            val adapter = TimetableAdapter(entries, onEntryClick)
+            adapter.updateData(entries, courseList)
+            holder.rvInner.adapter = adapter
         }
     }
 

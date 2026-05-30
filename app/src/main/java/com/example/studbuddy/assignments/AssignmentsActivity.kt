@@ -10,11 +10,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
+import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.BaseActivity
-import com.example.studbuddy.core.AppDataStore
+import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Assignment
 import java.text.SimpleDateFormat
 import java.util.*
@@ -30,6 +32,10 @@ class AssignmentsActivity : BaseActivity() {
     private val pendingList = mutableListOf<Assignment>()
     private val completedList = mutableListOf<Assignment>()
 
+    private val viewModel: AssignmentsViewModel by viewModels {
+        ViewModelFactory((application as StudBuddyApp).repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_assignments)
@@ -37,16 +43,12 @@ class AssignmentsActivity : BaseActivity() {
         setupSidebar()
         setupViews()
         setupRecyclerViews()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadAssignments()
+        observeViewModel()
     }
 
     private fun setupViews() {
         findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
-            if (AppDataStore.getCourses().isEmpty()) {
+            if (viewModel.courses.value.isNullOrEmpty()) {
                 Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showAssignmentDialog(null)
@@ -77,31 +79,32 @@ class AssignmentsActivity : BaseActivity() {
         rvCompleted.adapter = completedAdapter
     }
 
-    private fun loadAssignments() {
-        val allAssignments = AppDataStore.getAssignments()
+    private fun observeViewModel() {
+        viewModel.assignments.observe(this) { allAssignments ->
+            updateAdapters(allAssignments, viewModel.courses.value ?: emptyList())
+        }
+        viewModel.courses.observe(this) { allCourses ->
+            updateAdapters(viewModel.assignments.value ?: emptyList(), allCourses)
+        }
+    }
+
+    private fun updateAdapters(allAssignments: List<Assignment>, allCourses: List<com.example.studbuddy.core.models.Course>) {
+        val pending = allAssignments.filter { !it.isCompleted }.sortedBy { it.dueDate }
+        val completed = allAssignments.filter { it.isCompleted }.sortedByDescending { it.dueDate }
         
-        pendingList.clear()
-        pendingList.addAll(allAssignments.filter { !it.isCompleted }.sortedBy { it.dueDate })
-        
-        completedList.clear()
-        completedList.addAll(allAssignments.filter { it.isCompleted }.sortedByDescending { it.dueDate })
-        
-        pendingAdapter.notifyDataSetChanged()
-        completedAdapter.notifyDataSetChanged()
+        pendingAdapter.updateData(pending, allCourses)
+        completedAdapter.updateData(completed, allCourses)
     }
 
     private fun updateAssignmentStatus(assignment: Assignment, isCompleted: Boolean) {
         val updated = assignment.copy(isCompleted = isCompleted)
-        AppDataStore.updateAssignment(updated)
+        viewModel.updateAssignment(updated)
         
         if (isCompleted) {
             cancelReminder(updated)
         } else {
             scheduleReminder(updated)
         }
-        
-        updateCourseMarks(updated.courseId)
-        loadAssignments()
     }
 
     private fun showAssignmentDialog(existing: Assignment?) {
@@ -114,7 +117,7 @@ class AssignmentsActivity : BaseActivity() {
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
-        val courses = AppDataStore.getCourses()
+        val courses = viewModel.courses.value ?: emptyList()
         val courseNames = courses.map { it.name }
         spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courseNames)
 
@@ -162,7 +165,10 @@ class AssignmentsActivity : BaseActivity() {
         alertDialog.show()
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val courseId = courses[spinnerCourses.selectedItemPosition].id
+            val selectedIdx = spinnerCourses.selectedItemPosition
+            if (selectedIdx == -1) return@setOnClickListener
+            
+            val courseId = courses[selectedIdx].id
             val name = etName.text.toString().trim()
             val total = etTotal.text.toString().toDoubleOrNull() ?: 0.0
             val weight = etWeight.text.toString().toDoubleOrNull() ?: 0.0
@@ -179,14 +185,11 @@ class AssignmentsActivity : BaseActivity() {
                     weightage = weight,
                     isCompleted = existing?.isCompleted ?: false
                 )
-                AppDataStore.updateAssignment(assignment)
+                viewModel.updateAssignment(assignment)
                 
                 if (!assignment.isCompleted) {
                     scheduleReminder(assignment)
                 }
-                
-                updateCourseMarks(courseId)
-                loadAssignments()
                 alertDialog.dismiss()
             } else {
                 Toast.makeText(this, "Please enter assignment name", Toast.LENGTH_SHORT).show()
@@ -200,25 +203,11 @@ class AssignmentsActivity : BaseActivity() {
             .setMessage("Are you sure you want to delete this assignment?")
             .setPositiveButton("Delete") { _, _ ->
                 cancelReminder(assignment)
-                AppDataStore.deleteAssignment(assignment.id)
-                updateCourseMarks(assignment.courseId)
-                loadAssignments()
+                viewModel.deleteAssignment(assignment)
                 Toast.makeText(this, "Assignment deleted", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun updateCourseMarks(courseId: String) {
-        val course = AppDataStore.getCourses().find { it.id == courseId } ?: return
-        val assignments = AppDataStore.getAssignments().filter { it.courseId == courseId && it.isCompleted }
-        
-        val totalMarksFromAssignments = assignments.sumOf { 
-            if (it.totalMarks > 0) (it.obtainedMarks ?: 0.0) / it.totalMarks * it.weightage else 0.0 
-        }
-        
-        val updatedCourse = course.copy(marks = totalMarksFromAssignments)
-        AppDataStore.updateCourse(updatedCourse)
     }
 
     private fun scheduleReminder(assignment: Assignment) {
