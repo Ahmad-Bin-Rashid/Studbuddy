@@ -3,13 +3,14 @@ package com.example.studbuddy.core
 import android.content.Context
 import com.example.studbuddy.core.db.StudBuddyDatabase
 import com.example.studbuddy.core.models.*
+import com.example.studbuddy.core.repository.StudBuddyRepository
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
 
 object AppDataStore {
-    private lateinit var db: StudBuddyDatabase
+    private lateinit var repository: StudBuddyRepository
     private val executor = Executors.newSingleThreadExecutor()
 
     // Legacy Keys for Migration
@@ -22,15 +23,19 @@ object AppDataStore {
     private const val KEY_MIGRATED = "studbuddy_room_migrated"
 
     fun initialize(context: Context) {
-        db = StudBuddyDatabase.getDatabase(context)
-        migrateIfNeeded(context)
+        val db = StudBuddyDatabase.getDatabase(context)
+        repository = StudBuddyRepository(db)
+        migrateIfNeeded(context, db)
     }
 
-    private fun migrateIfNeeded(context: Context) {
+    private fun migrateIfNeeded(context: Context, db: StudBuddyDatabase) {
         val prefs = SharedPrefManager(context)
         if (!prefs.getBoolean(KEY_MIGRATED, false)) {
             executor.execute {
                 try {
+                    // Migration logic remains the same, using DAOs directly for this one-time task
+                    // to avoid potential issues with repository state during initialization.
+                    
                     // Migrate Semester
                     prefs.getString(KEY_SEMESTER)?.let {
                         db.semesterDao().insert(Semester.fromJson(JSONObject(it)))
@@ -86,92 +91,87 @@ object AppDataStore {
 
     // --- Semester API ---
     fun getSemester(): Semester? = runBlocking {
-        db.semesterDao().getSemester()
+        repository.getSemester()
     }
 
     fun saveSemester(semester: Semester) = runBlocking {
-        db.semesterDao().insert(semester)
+        repository.saveSemester(semester)
     }
 
     // --- Course API ---
     fun getCourses(): List<Course> = runBlocking {
-        db.courseDao().getAll()
+        repository.getCourses()
     }
 
     fun addCourse(course: Course) = runBlocking {
-        db.courseDao().insert(course)
+        repository.addCourse(course)
     }
 
     fun updateCourse(course: Course) = runBlocking {
-        db.courseDao().update(course)
+        repository.updateCourse(course)
     }
 
     // --- Timetable API ---
     fun getTimetable(): List<TimetableEntry> = runBlocking {
-        db.timetableDao().getAll()
+        repository.getTimetable()
     }
 
     fun addTimetableEntry(entry: TimetableEntry) = runBlocking {
-        db.timetableDao().insert(entry)
+        repository.addTimetableEntry(entry)
     }
 
     fun updateTimetableEntry(entry: TimetableEntry) = runBlocking {
-        db.timetableDao().update(entry)
+        repository.updateTimetableEntry(entry)
     }
 
     fun deleteTimetableEntry(entryId: String) = runBlocking {
-        db.timetableDao().deleteById(entryId)
+        repository.deleteTimetableEntry(entryId)
     }
 
     // --- Attendance API ---
     fun getAttendance(): List<AttendanceRecord> = runBlocking {
-        db.attendanceDao().getAll()
+        repository.getAttendance()
     }
 
     fun addAttendanceRecord(record: AttendanceRecord) = runBlocking {
-        db.attendanceDao().insert(record)
+        repository.addAttendanceRecord(record)
     }
 
     fun updateAttendanceRecord(record: AttendanceRecord) = runBlocking {
-        db.attendanceDao().update(record)
+        repository.updateAttendanceRecord(record)
     }
 
     fun deleteAttendanceRecord(recordId: String) = runBlocking {
-        db.attendanceDao().deleteById(recordId)
+        repository.deleteAttendanceRecord(recordId)
     }
 
     // --- Assignment API ---
     fun getAssignments(): List<Assignment> = runBlocking {
-        db.assignmentDao().getAll()
+        repository.getAssignments()
     }
 
     fun updateAssignment(assignment: Assignment) = runBlocking {
-        db.assignmentDao().insert(assignment)
+        repository.updateAssignment(assignment)
     }
 
     fun deleteAssignment(assignmentId: String) = runBlocking {
-        db.assignmentDao().deleteById(assignmentId)
+        repository.deleteAssignment(assignmentId)
     }
 
     // --- Exam API ---
     fun getExams(): List<Exam> = runBlocking {
-        db.examDao().getAll()
+        repository.getExams()
     }
 
     fun updateExam(exam: Exam) = runBlocking {
-        db.examDao().insert(exam)
+        repository.updateExam(exam)
     }
 
     fun deleteExam(examId: String) = runBlocking {
-        db.examDao().deleteById(examId)
+        repository.deleteExam(examId)
     }
 
     fun clearAll() = runBlocking {
-        db.semesterDao().deleteAll()
-        db.courseDao().deleteAll()
-        db.timetableDao().deleteAll()
-        db.attendanceDao().deleteAll()
-        db.assignmentDao().deleteAll()
-        db.examDao().deleteAll()
+        repository.clearAll()
     }
 }
