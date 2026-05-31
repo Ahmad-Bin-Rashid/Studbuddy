@@ -1,12 +1,12 @@
 package com.example.studbuddy.timetable
 
-import android.app.AlertDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +15,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.TimetableEntry
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 
 class TimetableFragment : Fragment() {
@@ -110,14 +111,14 @@ class TimetableFragment : Fragment() {
             }, parts[0].toInt(), parts[1].toInt(), true).show()
         }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existing == null) "Add Class" else "Edit Class")
             .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
+            .setPositiveButton(R.string.save_button, null)
+            .setNegativeButton(R.string.cancel_button, null)
 
         if (existing != null) {
-            dialog.setNeutralButton("Delete") { _, _ ->
+            dialog.setNeutralButton(R.string.delete_button) { _, _ ->
                 viewModel.deleteTimetableEntry(existing.id)
                 Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
             }

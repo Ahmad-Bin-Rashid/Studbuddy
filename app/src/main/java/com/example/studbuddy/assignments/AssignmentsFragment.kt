@@ -1,7 +1,6 @@
 package com.example.studbuddy.assignments
 
 import android.app.AlarmManager
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.PendingIntent
 import android.content.Context
@@ -11,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +19,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Assignment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -152,14 +153,14 @@ class AssignmentsFragment : Fragment() {
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialogBuilder = AlertDialog.Builder(requireContext())
+        val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existing == null) "Add Assignment" else "Edit Assignment")
             .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
+            .setPositiveButton(R.string.save_button, null)
+            .setNegativeButton(R.string.cancel_button, null)
         
         if (existing != null) {
-            dialogBuilder.setNeutralButton("Delete") { _, _ ->
+            dialogBuilder.setNeutralButton(R.string.delete_button) { _, _ ->
                 confirmDelete(existing)
             }
         }
@@ -201,15 +202,15 @@ class AssignmentsFragment : Fragment() {
     }
 
     private fun confirmDelete(assignment: Assignment) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle("Delete Assignment")
             .setMessage("Are you sure you want to delete this assignment?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton(R.string.delete_button) { _, _ ->
                 cancelReminder(assignment)
                 viewModel.deleteAssignment(assignment)
                 Toast.makeText(requireContext(), "Assignment deleted", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel_button, null)
             .show()
     }
 

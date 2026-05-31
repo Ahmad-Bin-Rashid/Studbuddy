@@ -10,4 +10,12 @@
     <string name="nav_settings">Settings</string>
     <string name="dashboard_title">Dashboard</string>
     <string name="setup_semester">Setup Semester</string>
+    <string name="add_course_button">Add New Course</string>
+    <string name="mark_attendance_button">Mark Attendance</string>
+    <string name="add_class_button">Add Class</string>
+    <string name="add_assignment_button">Add Assignment</string>
+    <string name="add_exam_button">Add Exam</string>
+    <string name="save_button">Save</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="delete_button">Delete</string>
 </resources>

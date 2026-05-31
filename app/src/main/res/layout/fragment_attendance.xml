@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
+    android:background="?attr/colorSurface"
     android:orientation="vertical">
 
     <!-- Attendance List -->
@@ -14,12 +15,11 @@
         android:padding="8dp" />
 
     <!-- Add Attendance/Config Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnMarkAttendance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="@color/colorPrimary"
-        android:text="Mark Attendance"
-        android:textColor="@color/white" />
+        android:text="@string/mark_attendance_button"
+        style="@style/Widget.Material3.Button" />
 </LinearLayout>

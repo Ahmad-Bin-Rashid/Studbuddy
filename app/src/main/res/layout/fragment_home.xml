@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,24 +12,25 @@
         android:padding="16dp">
 
         <!-- Placeholder for Semester Setup -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSetupSemester"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:visibility="gone"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="4dp">
+            style="?attr/materialCardViewFilledStyle"
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            app:cardCornerRadius="12dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSetupSemester"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:text="@string/setup_semester"
                 android:textAllCaps="false"
-                android:textColor="@color/colorPrimary" />
-        </androidx.cardview.widget.CardView>
+                android:textColor="?attr/colorOnPrimaryContainer" />
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:id="@+id/dashboardItemsContainer"

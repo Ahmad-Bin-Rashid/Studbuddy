@@ -1,6 +1,5 @@
 package com.example.studbuddy.courses
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +13,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 
 class CoursesFragment : Fragment() {
@@ -119,10 +119,10 @@ class CoursesFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existingCourse == null) "Add Course" else "Edit Course")
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save_button) { _, _ ->
                 val name = etName.text.toString().trim()
                 val instructor = etInstructor.text.toString().trim()
                 val credits = etCredits.text.toString().toIntOrNull() ?: 0
@@ -155,7 +155,7 @@ class CoursesFragment : Fragment() {
                     Toast.makeText(requireContext(), "Please enter valid details", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel_button, null)
             .show()
     }
 }

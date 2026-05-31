@@ -1,56 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand -->
-    <color name="colorPrimary">#1565C0</color>
-    <color name="colorPrimaryDark">#003c8f</color>
-    <color name="colorPrimaryLight">#5e92f3</color>
-    <color name="colorAccent">#42A5F5</color>
+    <!-- Google Classroom Inspired Palette (Material 3) -->
 
-    <!-- Status / State Colors -->
-    <color name="colorStatusNormal">#4CAF50</color>      <!-- Green — OK, present, on time -->
-    <color name="colorStatusWarning">#FF9800</color>     <!-- Orange — warning, late, low attendance -->
-    <color name="colorStatusCritical">#F44336</color>    <!-- Red — overdue, absent, <60% attendance -->
-    <color name="colorStatusOverdue">#B71C1C</color>     <!-- Dark Red — severely overdue -->
-    <color name="colorStatusComplete">#9E9E9E</color>    <!-- Grey — completed item -->
+    <!-- Light Theme -->
+    <color name="md_theme_light_primary">#1E8E3E</color> <!-- Classroom Green -->
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#E6F4EA</color>
+    <color name="md_theme_light_onPrimaryContainer">#0D652D</color>
+    <color name="md_theme_light_secondary">#5F6368</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#E8EAED</color>
+    <color name="md_theme_light_onSecondaryContainer">#202124</color>
+    <color name="md_theme_light_tertiary">#1967D2</color> <!-- Google Blue for secondary accents -->
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_tertiaryContainer">#E8F0FE</color>
+    <color name="md_theme_light_onTertiaryContainer">#174EA6</color>
+    <color name="md_theme_light_error">#D93025</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+    <color name="md_theme_light_errorContainer">#FCE8E6</color>
+    <color name="md_theme_light_onErrorContainer">#A50E0E</color>
+    <color name="md_theme_light_outline">#DADCE0</color>
+    <color name="md_theme_light_background">#F8F9FA</color>
+    <color name="md_theme_light_onBackground">#202124</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <color name="md_theme_light_onSurface">#202124</color>
+    <color name="md_theme_light_surfaceVariant">#F1F3F4</color>
+    <color name="md_theme_light_onSurfaceVariant">#5F6368</color>
+    <color name="md_theme_light_inverseOnSurface">#F1F1F1</color>
+    <color name="md_theme_light_inverseSurface">#303134</color>
+    <color name="md_theme_light_inversePrimary">#81C995</color>
+    <color name="md_theme_light_shadow">#000000</color>
+    <color name="md_theme_light_surfaceTint">#1E8E3E</color>
+    <color name="md_theme_light_outlineVariant">#E8EAED</color>
+    <color name="md_theme_light_scrim">#000000</color>
 
-    <!-- Priority Colors -->
-    <color name="colorPriorityHigh">#F44336</color>
-    <color name="colorPriorityMedium">#FF9800</color>
-    <color name="colorPriorityLow">#4CAF50</color>
+    <!-- Dark Theme -->
+    <color name="md_theme_dark_primary">#81C995</color>
+    <color name="md_theme_dark_onPrimary">#07391B</color>
+    <color name="md_theme_dark_primaryContainer">#0D652D</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E6F4EA</color>
+    <color name="md_theme_dark_secondary">#BDC1C6</color>
+    <color name="md_theme_dark_onSecondary">#202124</color>
+    <color name="md_theme_dark_secondaryContainer">#3C4043</color>
+    <color name="md_theme_dark_onSecondaryContainer">#E8EAED</color>
+    <color name="md_theme_dark_tertiary">#8AB4F8</color>
+    <color name="md_theme_dark_onTertiary">#042B5E</color>
+    <color name="md_theme_dark_tertiaryContainer">#174EA6</color>
+    <color name="md_theme_dark_onTertiaryContainer">#E8F0FE</color>
+    <color name="md_theme_dark_error">#F28B82</color>
+    <color name="md_theme_dark_onError">#3C0001</color>
+    <color name="md_theme_dark_errorContainer">#A50E0E</color>
+    <color name="md_theme_dark_onErrorContainer">#FCE8E6</color>
+    <color name="md_theme_dark_outline">#7FCAC3</color> <!-- Adjusted for visibility -->
+    <color name="md_theme_dark_background">#202124</color>
+    <color name="md_theme_dark_onBackground">#E8EAED</color>
+    <color name="md_theme_dark_surface">#28292C</color>
+    <color name="md_theme_dark_onSurface">#E8EAED</color>
+    <color name="md_theme_dark_surfaceVariant">#3C4043</color>
+    <color name="md_theme_dark_onSurfaceVariant">#BDC1C6</color>
+    <color name="md_theme_dark_inverseOnSurface">#202124</color>
+    <color name="md_theme_dark_inverseSurface">#E8EAED</color>
+    <color name="md_theme_dark_inversePrimary">#1E8E3E</color>
+    <color name="md_theme_dark_shadow">#000000</color>
+    <color name="md_theme_dark_surfaceTint">#81C995</color>
+    <color name="md_theme_dark_outlineVariant">#44474F</color>
+    <color name="md_theme_dark_scrim">#000000</color>
 
-    <!-- Attendance Threshold Colors -->
-    <color name="colorAttendanceGood">#4CAF50</color>   <!-- ≥75% -->
-    <color name="colorAttendanceMid">#FF9800</color>    <!-- 60–74% -->
-    <color name="colorAttendanceLow">#F44336</color>    <!-- <60% -->
+    <!-- Legacy Compatibility / Alias -->
+    <color name="colorPrimary">@color/md_theme_light_primary</color>
+    <color name="colorPrimaryDark">#0D652D</color>
+    <color name="colorAccent">@color/md_theme_light_tertiary</color>
+    <color name="colorBackground">@color/md_theme_light_background</color>
+    <color name="colorTextPrimary">@color/md_theme_light_onSurface</color>
+    <color name="colorTextSecondary">@color/md_theme_light_onSurfaceVariant</color>
+    <color name="colorDivider">@color/md_theme_light_outline</color>
 
-    <!-- Backgrounds -->
-    <color name="colorBackground">#F5F5F5</color>
-    <color name="colorCardBackground">#FFFFFF</color>
-    <color name="colorSurfaceElevated">#FFFFFF</color>
+    <!-- App Specific / Functional Colors -->
+    <color name="colorStatusNormal">#1E8E3E</color>
+    <color name="colorStatusWarning">#F9AB00</color>
+    <color name="colorStatusCritical">#D93025</color>
+    <color name="colorStatusOverdue">#A50E0E</color>
 
-    <!-- Text -->
-    <color name="colorTextPrimary">#212121</color>
-    <color name="colorTextSecondary">#757575</color>
-    <color name="colorTextHint">#BDBDBD</color>
-    <color name="colorTextOnPrimary">#FFFFFF</color>
-
-    <!-- Divider & Borders -->
-    <color name="colorDivider">#E0E0E0</color>
-    <color name="colorBorder">#BDBDBD</color>
-
-    <!-- Empty State -->
-    <color name="colorEmptyState">#BDBDBD</color>
-
-    <!-- Course Color Palette (for Timetable entries) -->
-    <color name="courseColor1">#1565C0</color>
-    <color name="courseColor2">#6A1B9A</color>
-    <color name="courseColor3">#00695C</color>
-    <color name="courseColor4">#E65100</color>
-    <color name="courseColor5">#AD1457</color>
-    <color name="courseColor6">#283593</color>
-    <color name="courseColor7">#558B2F</color>
-    <color name="courseColor8">#4E342E</color>
-
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
 </resources>

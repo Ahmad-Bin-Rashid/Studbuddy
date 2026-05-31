@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
+    android:background="?attr/colorSurface"
     android:orientation="vertical">
 
     <!-- Timetable List -->
@@ -14,12 +14,11 @@
         android:padding="8dp" />
 
     <!-- Add Timetable Entry Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddTimetableEntry"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="@color/colorPrimary"
-        android:text="Add Class"
-        android:textColor="@color/white" />
+        android:text="@string/add_class_button"
+        style="@style/Widget.Material3.Button" />
 </LinearLayout>

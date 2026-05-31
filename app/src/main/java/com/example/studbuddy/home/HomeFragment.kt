@@ -1,6 +1,5 @@
 package com.example.studbuddy.home
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,6 +13,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Semester
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -73,7 +73,7 @@ class HomeFragment : Fragment() {
         val now = Calendar.getInstance()
         val currentDay = now.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
         val dayIndex = if (currentDay == 1) 7 else currentDay - 1 // Adjust to 1=Mon...7=Sun
-        val currentTime = String.format("%02d:%02d", now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
+        val currentTime = String.format(Locale.getDefault(), "%02d:%02d", now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
 
         val nextLecture = timetable
             .filter { it.dayOfWeek == dayIndex && it.startTime > currentTime }
@@ -105,14 +105,14 @@ class HomeFragment : Fragment() {
             val records = attendance.filter { it.courseId == course.id }
             val percentage = if (records.isNotEmpty()) (records.count { it.status == "PRESENT" }.toDouble() / records.size) * 100 else 100.0
             if (percentage < threshold) {
-                shortAttendanceDetails.add("${course.name} (${String.format("%.1f%%", percentage)})")
+                shortAttendanceDetails.add("${course.name} (${String.format(Locale.getDefault(), "%.1f%%", percentage)})")
             }
         }
         if (shortAttendanceDetails.isNotEmpty()) {
             addDashboardCard(
                 "Attendance Alert", 
                 "Short attendance in: ${shortAttendanceDetails.joinToString(", ")}", 
-                "Required Threshold: ${String.format("%.0f%%", threshold)}"
+                "Required Threshold: ${String.format(Locale.getDefault(), "%.0f%%", threshold)}"
             )
         }
 
@@ -154,7 +154,7 @@ class HomeFragment : Fragment() {
 
         addDashboardCard(
             "Semester GPA", 
-            "Current GPA: ${String.format("%.2f", calculatedGpa)}", 
+            "Current GPA: ${String.format(Locale.getDefault(), "%.2f", calculatedGpa)}", 
             if (semester.isActive) "Active Semester" else "Inactive Semester"
         )
     }
@@ -200,10 +200,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existingSemester == null) "Setup Semester" else "Edit Semester")
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save_button) { _, _ ->
                 val name = etName.text.toString().trim()
                 if (name.isEmpty()) {
                     Toast.makeText(requireContext(), "Please enter semester name", Toast.LENGTH_SHORT).show()
@@ -224,7 +224,7 @@ class HomeFragment : Fragment() {
                     Toast.makeText(requireContext(), "Please select valid dates", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel_button, null)
             .show()
     }
 

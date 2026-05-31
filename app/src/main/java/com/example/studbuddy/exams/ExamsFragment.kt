@@ -1,7 +1,6 @@
 package com.example.studbuddy.exams
 
 import android.app.AlarmManager
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.PendingIntent
 import android.app.TimePickerDialog
@@ -12,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,6 +22,7 @@ import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.ExamType
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -109,7 +110,7 @@ class ExamsFragment : Fragment() {
         if (courses.isEmpty()) return
         
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
-        spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ExamType.values().map { it.name })
+        spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ExamType.entries.map { it.name })
 
         val calendar = Calendar.getInstance()
         existing?.let { 
@@ -146,14 +147,14 @@ class ExamsFragment : Fragment() {
             layoutObtained.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
-        val dialogBuilder = AlertDialog.Builder(requireContext())
+        val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existing == null) "Add Exam" else "Edit Exam")
             .setView(dialogView)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
+            .setPositiveButton(R.string.save_button, null)
+            .setNegativeButton(R.string.cancel_button, null)
 
         if (existing != null) {
-            dialogBuilder.setNeutralButton("Delete") { _, _ -> confirmDelete(existing) }
+            dialogBuilder.setNeutralButton(R.string.delete_button) { _, _ -> confirmDelete(existing) }
         }
 
         val alertDialog = dialogBuilder.create()
@@ -164,7 +165,7 @@ class ExamsFragment : Fragment() {
             if (selectedIdx == -1) return@setOnClickListener
             
             val courseId = courses[selectedIdx].id
-            val type = ExamType.values()[spinnerType.selectedItemPosition]
+            val type = ExamType.entries[spinnerType.selectedItemPosition]
             val total = etTotalMarks.text.toString().toDoubleOrNull() ?: 0.0
             val weight = etWeightage.text.toString().toDoubleOrNull() ?: 0.0
             val isComp = cbCompleted.isChecked
@@ -194,14 +195,14 @@ class ExamsFragment : Fragment() {
     }
 
     private fun confirmDelete(exam: Exam) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle("Delete Exam")
             .setMessage("Are you sure you want to delete this exam?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton(R.string.delete_button) { _, _ ->
                 cancelExamReminder(exam)
                 viewModel.deleteExam(exam)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel_button, null)
             .show()
     }
 

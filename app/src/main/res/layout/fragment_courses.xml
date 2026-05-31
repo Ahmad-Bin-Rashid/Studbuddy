@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
+    android:background="?attr/colorSurface"
     android:orientation="vertical">
 
     <!-- Course List -->
@@ -17,12 +17,11 @@
         tools:listitem="@layout/item_course" />
 
     <!-- Add Course Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddCourse"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="@color/colorPrimary"
-        android:text="Add New Course"
-        android:textColor="@color/white" />
+        android:text="@string/add_course_button"
+        style="@style/Widget.Material3.Button" />
 </LinearLayout>

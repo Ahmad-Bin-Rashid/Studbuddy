@@ -1,6 +1,5 @@
 package com.example.studbuddy.attendance
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +14,7 @@ import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 
 class AttendanceFragment : Fragment() {
@@ -88,10 +88,10 @@ class AttendanceFragment : Fragment() {
             }
         }
 
-        val dialogBuilder = AlertDialog.Builder(requireContext())
+        val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existingRecord == null) "Mark Attendance" else "Update Attendance")
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save_button) { _, _ ->
                 val selectedIdx = spinnerCourses.selectedItemPosition
                 if (selectedIdx == -1) return@setPositiveButton
                 
@@ -116,10 +116,10 @@ class AttendanceFragment : Fragment() {
                     viewModel.updateAttendanceRecord(record)
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel_button, null)
 
         if (existingRecord != null) {
-            dialogBuilder.setNeutralButton("Delete") { _, _ ->
+            dialogBuilder.setNeutralButton(R.string.delete_button) { _, _ ->
                 viewModel.deleteAttendanceRecord(existingRecord.id)
                 Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
             }
@@ -133,15 +133,15 @@ class AttendanceFragment : Fragment() {
         val rvRecords = dialogView.findViewById<RecyclerView>(R.id.rvAttendanceRecords)
         val tvCourseName = dialogView.findViewById<TextView>(R.id.tvHistoryCourseName)
 
-        tvCourseName.text = "History for ${course.name}"
+        tvCourseName.text = String.format(Locale.getDefault(), "History for %s", course.name)
         
         val records = (viewModel.attendance.value ?: emptyList())
             .filter { it.courseId == course.id }
             .sortedByDescending { it.dateTime }
         
-        val historyDialog = AlertDialog.Builder(requireContext())
+        val historyDialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
-            .setNegativeButton("Close", null)
+            .setNegativeButton(R.string.cancel_button, null)
             .create()
 
         val adapter = RecordAdapter(records) { record ->

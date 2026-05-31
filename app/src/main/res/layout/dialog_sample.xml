@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -9,45 +10,35 @@
         android:orientation="vertical"
         android:padding="@dimen/spacing_medium">
 
-        <!-- Input 1 Label -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_xsmall"
-            android:text="Title"
-            android:textColor="@color/colorTextPrimary"
-            android:textSize="@dimen/text_size_body"
-            android:textStyle="bold" />
-
-        <!-- Input 1 -->
-        <EditText
-            android:id="@+id/editTextSampleTitle"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_medium"
-            android:hint="Enter title"
-            android:inputType="text"
-            android:maxLength="100" />
+            android:hint="Title"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-        <!-- Input 2 Label -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_xsmall"
-            android:text="Subtitle"
-            android:textColor="@color/colorTextPrimary"
-            android:textSize="@dimen/text_size_body"
-            android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextSampleTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLength="100" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Input 2 -->
-        <EditText
-            android:id="@+id/editTextSampleSubtitle"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_medium"
-            android:hint="Enter subtitle"
-            android:inputType="text"
-            android:maxLength="100" />
+            android:hint="Subtitle"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextSampleSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLength="100" />
+        </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
 </ScrollView>
