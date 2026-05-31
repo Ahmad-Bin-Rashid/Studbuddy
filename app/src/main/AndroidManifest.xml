@@ -19,20 +19,13 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:theme="@style/Theme.Studbuddy.NoActionBar"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".courses.CourseActivity" android:launchMode="singleTop" />
-        <activity android:name=".attendance.AttendanceActivity" android:launchMode="singleTop" />
-        <activity android:name=".timetable.TimetableActivity" android:launchMode="singleTop" />
-        <activity android:name=".assignments.AssignmentsActivity" android:launchMode="singleTop" />
-        <activity android:name=".exams.ExamsActivity" android:launchMode="singleTop" />
-        <activity android:name=".gpa.GpaActivity" android:launchMode="singleTop" />
-        <activity android:name=".settings.SettingsActivity" android:launchMode="singleTop" />
 
     </application>
 

@@ -4,79 +4,82 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.viewModels
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
 import java.util.*
 
-class AttendanceActivity : BaseActivity() {
+class AttendanceFragment : Fragment() {
 
     private lateinit var recyclerViewAttendance: RecyclerView
     private lateinit var attendanceAdapter: AttendanceAdapter
     private val courseList = mutableListOf<Course>()
 
     private val viewModel: AttendanceViewModel by viewModels {
-        ViewModelFactory((application as StudBuddyApp).repository)
+        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_attendance)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_attendance, container, false)
+    }
 
-        setupViews()
-        setupSidebar()
-        setupRecyclerView()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupViews(view)
+        setupRecyclerView(view)
         observeViewModel()
     }
 
-    private fun setupViews() {
-        findViewById<Button>(R.id.btnMarkAttendance).setOnClickListener {
+    private fun setupViews(view: View) {
+        view.findViewById<Button>(R.id.btnMarkAttendance).setOnClickListener {
             if (viewModel.courses.value.isNullOrEmpty()) {
-                Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showMarkAttendanceDialog(null)
             }
         }
     }
 
-    private fun setupRecyclerView() {
-        recyclerViewAttendance = findViewById(R.id.recyclerViewAttendance)
+    private fun setupRecyclerView(view: View) {
+        recyclerViewAttendance = view.findViewById(R.id.recyclerViewAttendance)
         attendanceAdapter = AttendanceAdapter(courseList) { course ->
             showAttendanceHistoryDialog(course)
         }
-        recyclerViewAttendance.layoutManager = LinearLayoutManager(this)
+        recyclerViewAttendance.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewAttendance.adapter = attendanceAdapter
     }
 
     private fun observeViewModel() {
-        viewModel.courses.observe(this) { courses ->
+        viewModel.courses.observe(viewLifecycleOwner) { courses ->
             attendanceAdapter.updateData(courses, viewModel.attendance.value ?: emptyList())
         }
-        viewModel.attendance.observe(this) { records ->
+        viewModel.attendance.observe(viewLifecycleOwner) { records ->
             attendanceAdapter.updateData(viewModel.courses.value ?: emptyList(), records)
         }
     }
 
     private fun showMarkAttendanceDialog(existingRecord: AttendanceRecord?) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_mark_attendance, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_mark_attendance, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val rgStatus = dialogView.findViewById<RadioGroup>(R.id.rgStatus)
 
         val courses = viewModel.courses.value ?: emptyList()
-        spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
 
         existingRecord?.let { record ->
             val courseIdx = courses.indexOfFirst { it.id == record.courseId }
             if (courseIdx != -1) {
                 spinnerCourses.setSelection(courseIdx)
-                spinnerCourses.isEnabled = false // Don't allow changing course during update
+                spinnerCourses.isEnabled = false
             }
             when (record.status) {
                 "PRESENT" -> rgStatus.check(R.id.rbPresent)
@@ -85,7 +88,7 @@ class AttendanceActivity : BaseActivity() {
             }
         }
 
-        val dialogBuilder = AlertDialog.Builder(this)
+        val dialogBuilder = AlertDialog.Builder(requireContext())
             .setTitle(if (existingRecord == null) "Mark Attendance" else "Update Attendance")
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
@@ -118,7 +121,7 @@ class AttendanceActivity : BaseActivity() {
         if (existingRecord != null) {
             dialogBuilder.setNeutralButton("Delete") { _, _ ->
                 viewModel.deleteAttendanceRecord(existingRecord.id)
-                Toast.makeText(this, "Record deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -126,7 +129,7 @@ class AttendanceActivity : BaseActivity() {
     }
 
     private fun showAttendanceHistoryDialog(course: Course) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_attendance_history, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_attendance_history, null)
         val rvRecords = dialogView.findViewById<RecyclerView>(R.id.rvAttendanceRecords)
         val tvCourseName = dialogView.findViewById<TextView>(R.id.tvHistoryCourseName)
 
@@ -136,7 +139,7 @@ class AttendanceActivity : BaseActivity() {
             .filter { it.courseId == course.id }
             .sortedByDescending { it.dateTime }
         
-        val historyDialog = AlertDialog.Builder(this)
+        val historyDialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setNegativeButton("Close", null)
             .create()
@@ -146,7 +149,7 @@ class AttendanceActivity : BaseActivity() {
             showMarkAttendanceDialog(record)
         }
         
-        rvRecords.layoutManager = LinearLayoutManager(this)
+        rvRecords.layoutManager = LinearLayoutManager(requireContext())
         rvRecords.adapter = adapter
         
         historyDialog.show()

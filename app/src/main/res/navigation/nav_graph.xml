@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.studbuddy.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/coursesFragment"
+        android:name="com.example.studbuddy.courses.CoursesFragment"
+        android:label="@string/nav_courses"
+        tools:layout="@layout/fragment_courses" />
+
+    <fragment
+        android:id="@+id/attendanceFragment"
+        android:name="com.example.studbuddy.attendance.AttendanceFragment"
+        android:label="@string/nav_attendance"
+        tools:layout="@layout/fragment_attendance" />
+
+    <fragment
+        android:id="@+id/timetableFragment"
+        android:name="com.example.studbuddy.timetable.TimetableFragment"
+        android:label="@string/nav_timetable"
+        tools:layout="@layout/fragment_timetable" />
+
+    <fragment
+        android:id="@+id/assignmentsFragment"
+        android:name="com.example.studbuddy.assignments.AssignmentsFragment"
+        android:label="@string/nav_assignments"
+        tools:layout="@layout/fragment_assignments" />
+
+    <fragment
+        android:id="@+id/examsFragment"
+        android:name="com.example.studbuddy.exams.ExamsFragment"
+        android:label="@string/nav_exams"
+        tools:layout="@layout/fragment_exams" />
+
+    <fragment
+        android:id="@+id/gpaFragment"
+        android:name="com.example.studbuddy.gpa.GpaFragment"
+        android:label="@string/nav_gpa"
+        tools:layout="@layout/fragment_gpa" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.studbuddy.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings" />
+
+</navigation>

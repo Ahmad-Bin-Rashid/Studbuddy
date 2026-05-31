@@ -9,20 +9,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.viewModels
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Assignment
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class AssignmentsActivity : BaseActivity() {
+class AssignmentsFragment : Fragment() {
 
     private lateinit var rvPending: RecyclerView
     private lateinit var rvCompleted: RecyclerView
@@ -33,32 +34,34 @@ class AssignmentsActivity : BaseActivity() {
     private val completedList = mutableListOf<Assignment>()
 
     private val viewModel: AssignmentsViewModel by viewModels {
-        ViewModelFactory((application as StudBuddyApp).repository)
+        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_assignments)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_assignments, container, false)
+    }
 
-        setupSidebar()
-        setupViews()
-        setupRecyclerViews()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupViews(view)
+        setupRecyclerViews(view)
         observeViewModel()
     }
 
-    private fun setupViews() {
-        findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
+    private fun setupViews(view: View) {
+        view.findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
             if (viewModel.courses.value.isNullOrEmpty()) {
-                Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showAssignmentDialog(null)
             }
         }
     }
 
-    private fun setupRecyclerViews() {
-        rvPending = findViewById(R.id.rvPending)
-        rvCompleted = findViewById(R.id.rvCompleted)
+    private fun setupRecyclerViews(view: View) {
+        rvPending = view.findViewById(R.id.rvPending)
+        rvCompleted = view.findViewById(R.id.rvCompleted)
 
         pendingAdapter = AssignmentsAdapter(pendingList, { assignment, isChecked ->
             updateAssignmentStatus(assignment, isChecked)
@@ -72,18 +75,18 @@ class AssignmentsActivity : BaseActivity() {
             showAssignmentDialog(assignment)
         })
 
-        rvPending.layoutManager = LinearLayoutManager(this)
+        rvPending.layoutManager = LinearLayoutManager(requireContext())
         rvPending.adapter = pendingAdapter
 
-        rvCompleted.layoutManager = LinearLayoutManager(this)
+        rvCompleted.layoutManager = LinearLayoutManager(requireContext())
         rvCompleted.adapter = completedAdapter
     }
 
     private fun observeViewModel() {
-        viewModel.assignments.observe(this) { allAssignments ->
+        viewModel.assignments.observe(viewLifecycleOwner) { allAssignments ->
             updateAdapters(allAssignments, viewModel.courses.value ?: emptyList())
         }
-        viewModel.courses.observe(this) { allCourses ->
+        viewModel.courses.observe(viewLifecycleOwner) { allCourses ->
             updateAdapters(viewModel.assignments.value ?: emptyList(), allCourses)
         }
     }
@@ -108,7 +111,7 @@ class AssignmentsActivity : BaseActivity() {
     }
 
     private fun showAssignmentDialog(existing: Assignment?) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_assignment, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_assignment, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val etName = dialogView.findViewById<EditText>(R.id.etAssignmentTitle)
         val etTotal = dialogView.findViewById<EditText>(R.id.etTotalMarks)
@@ -119,7 +122,7 @@ class AssignmentsActivity : BaseActivity() {
 
         val courses = viewModel.courses.value ?: emptyList()
         val courseNames = courses.map { it.name }
-        spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courseNames)
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courseNames)
 
         var selectedDate = existing?.dueDate ?: System.currentTimeMillis()
         val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -141,7 +144,7 @@ class AssignmentsActivity : BaseActivity() {
         btnDate.setOnClickListener {
             val cal = Calendar.getInstance()
             cal.timeInMillis = selectedDate
-            DatePickerDialog(this, { _, y, m, d ->
+            DatePickerDialog(requireContext(), { _, y, m, d ->
                 val selected = Calendar.getInstance()
                 selected.set(y, m, d)
                 selectedDate = selected.timeInMillis
@@ -149,7 +152,7 @@ class AssignmentsActivity : BaseActivity() {
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialogBuilder = AlertDialog.Builder(this)
+        val dialogBuilder = AlertDialog.Builder(requireContext())
             .setTitle(if (existing == null) "Add Assignment" else "Edit Assignment")
             .setView(dialogView)
             .setPositiveButton("Save", null)
@@ -192,19 +195,19 @@ class AssignmentsActivity : BaseActivity() {
                 }
                 alertDialog.dismiss()
             } else {
-                Toast.makeText(this, "Please enter assignment name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please enter assignment name", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun confirmDelete(assignment: Assignment) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(requireContext())
             .setTitle("Delete Assignment")
             .setMessage("Are you sure you want to delete this assignment?")
             .setPositiveButton("Delete") { _, _ ->
                 cancelReminder(assignment)
                 viewModel.deleteAssignment(assignment)
-                Toast.makeText(this, "Assignment deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Assignment deleted", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -217,15 +220,15 @@ class AssignmentsActivity : BaseActivity() {
         val intent = Intent("com.example.studbuddy.ASSIGNMENT_REMINDER").apply {
             putExtra("assignment_id", assignment.id)
             putExtra("name", assignment.name)
-            `package` = packageName
+            `package` = requireContext().packageName
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
-            this, assignment.id.hashCode(), intent,
+            requireContext(), assignment.id.hashCode(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         try {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         } catch (e: SecurityException) {
@@ -235,14 +238,14 @@ class AssignmentsActivity : BaseActivity() {
 
     private fun cancelReminder(assignment: Assignment) {
         val intent = Intent("com.example.studbuddy.ASSIGNMENT_REMINDER").apply {
-            `package` = packageName
+            `package` = requireContext().packageName
         }
         val pendingIntent = PendingIntent.getBroadcast(
-            this, assignment.id.hashCode(), intent,
+            requireContext(), assignment.id.hashCode(), intent,
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
         pendingIntent?.let {
-            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(it)
         }
     }

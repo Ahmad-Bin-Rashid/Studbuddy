@@ -10,21 +10,23 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.viewModels
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.ViewModelFactory
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.ExamType
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ExamsActivity : BaseActivity() {
+class ExamsFragment : Fragment() {
 
     private lateinit var rvPending: RecyclerView
     private lateinit var rvCompleted: RecyclerView
@@ -35,53 +37,55 @@ class ExamsActivity : BaseActivity() {
     private val completedList = mutableListOf<Exam>()
 
     private val viewModel: ExamsViewModel by viewModels {
-        ViewModelFactory((application as StudBuddyApp).repository)
+        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_exams)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_exams, container, false)
+    }
 
-        setupSidebar()
-        setupViews()
-        setupRecyclerViews()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupViews(view)
+        setupRecyclerViews(view)
         observeViewModel()
     }
 
-    private fun setupViews() {
-        findViewById<Button>(R.id.btnAddExam).setOnClickListener {
+    private fun setupViews(view: View) {
+        view.findViewById<Button>(R.id.btnAddExam).setOnClickListener {
             if (viewModel.courses.value.isNullOrEmpty()) {
-                Toast.makeText(this, "Please add courses first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showExamDialog(null)
             }
         }
     }
 
-    private fun setupRecyclerViews() {
-        rvPending = findViewById(R.id.rvPendingExams)
-        rvCompleted = findViewById(R.id.rvCompletedExams)
+    private fun setupRecyclerViews(view: View) {
+        rvPending = view.findViewById(R.id.rvPendingExams)
+        rvCompleted = view.findViewById(R.id.rvCompletedExams)
 
         pendingAdapter = ExamAdapter(pendingList) { exam -> showExamDialog(exam) }
         completedAdapter = ExamAdapter(completedList) { exam -> showExamDialog(exam) }
 
-        rvPending.layoutManager = LinearLayoutManager(this)
+        rvPending.layoutManager = LinearLayoutManager(requireContext())
         rvPending.adapter = pendingAdapter
 
-        rvCompleted.layoutManager = LinearLayoutManager(this)
+        rvCompleted.layoutManager = LinearLayoutManager(requireContext())
         rvCompleted.adapter = completedAdapter
     }
 
     private fun observeViewModel() {
-        viewModel.exams.observe(this) { allExams ->
+        viewModel.exams.observe(viewLifecycleOwner) { allExams ->
             updateAdapters(allExams, viewModel.courses.value ?: emptyList())
         }
-        viewModel.courses.observe(this) { allCourses ->
+        viewModel.courses.observe(viewLifecycleOwner) { allCourses ->
             updateAdapters(viewModel.exams.value ?: emptyList(), allCourses)
         }
     }
 
-    private fun updateAdapters(allExams: List<Exam>, allCourses: List<com.example.studbuddy.core.models.Course>) {
+    private fun updateAdapters(allExams: List<Exam>, allCourses: List<Course>) {
         val pending = allExams.filter { !it.isCompleted }.sortedBy { it.date }
         val completed = allExams.filter { it.isCompleted }.sortedByDescending { it.date }
         
@@ -90,7 +94,7 @@ class ExamsActivity : BaseActivity() {
     }
 
     private fun showExamDialog(existing: Exam?) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_exam, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_exam, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerExamType)
         val btnDate = dialogView.findViewById<Button>(R.id.btnExamDate)
@@ -104,8 +108,8 @@ class ExamsActivity : BaseActivity() {
         val courses = viewModel.courses.value ?: emptyList()
         if (courses.isEmpty()) return
         
-        spinnerCourses.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses.map { it.name })
-        spinnerType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ExamType.values().map { it.name })
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
+        spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ExamType.values().map { it.name })
 
         val calendar = Calendar.getInstance()
         existing?.let { 
@@ -126,11 +130,11 @@ class ExamsActivity : BaseActivity() {
         btnDate.text = sdf.format(calendar.time)
 
         btnDate.setOnClickListener {
-            DatePickerDialog(this, { _, y, m, d ->
+            DatePickerDialog(requireContext(), { _, y, m, d ->
                 calendar.set(Calendar.YEAR, y)
                 calendar.set(Calendar.MONTH, m)
                 calendar.set(Calendar.DAY_OF_MONTH, d)
-                TimePickerDialog(this, { _, hh, mm ->
+                TimePickerDialog(requireContext(), { _, hh, mm ->
                     calendar.set(Calendar.HOUR_OF_DAY, hh)
                     calendar.set(Calendar.MINUTE, mm)
                     btnDate.text = sdf.format(calendar.time)
@@ -142,7 +146,7 @@ class ExamsActivity : BaseActivity() {
             layoutObtained.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
-        val dialogBuilder = AlertDialog.Builder(this)
+        val dialogBuilder = AlertDialog.Builder(requireContext())
             .setTitle(if (existing == null) "Add Exam" else "Edit Exam")
             .setView(dialogView)
             .setPositiveButton("Save", null)
@@ -156,10 +160,10 @@ class ExamsActivity : BaseActivity() {
         alertDialog.show()
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val selectedCourseIdx = spinnerCourses.selectedItemPosition
-            if (selectedCourseIdx == -1) return@setOnClickListener
+            val selectedIdx = spinnerCourses.selectedItemPosition
+            if (selectedIdx == -1) return@setOnClickListener
             
-            val courseId = courses[selectedCourseIdx].id
+            val courseId = courses[selectedIdx].id
             val type = ExamType.values()[spinnerType.selectedItemPosition]
             val total = etTotalMarks.text.toString().toDoubleOrNull() ?: 0.0
             val weight = etWeightage.text.toString().toDoubleOrNull() ?: 0.0
@@ -190,7 +194,7 @@ class ExamsActivity : BaseActivity() {
     }
 
     private fun confirmDelete(exam: Exam) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(requireContext())
             .setTitle("Delete Exam")
             .setMessage("Are you sure you want to delete this exam?")
             .setPositiveButton("Delete") { _, _ ->
@@ -212,15 +216,15 @@ class ExamsActivity : BaseActivity() {
             putExtra("type", exam.type.name)
             putExtra("venue", exam.venue ?: "Not set")
             putExtra("time", SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(exam.date)))
-            `package` = packageName
+            `package` = requireContext().packageName
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
-            this, exam.id.hashCode(), intent,
+            requireContext(), exam.id.hashCode(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         try {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         } catch (e: SecurityException) {
@@ -230,14 +234,14 @@ class ExamsActivity : BaseActivity() {
 
     private fun cancelExamReminder(exam: Exam) {
         val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
-            `package` = packageName
+            `package` = requireContext().packageName
         }
         val pendingIntent = PendingIntent.getBroadcast(
-            this, exam.id.hashCode(), intent,
+            requireContext(), exam.id.hashCode(), intent,
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
         pendingIntent?.let {
-            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(it)
         }
     }

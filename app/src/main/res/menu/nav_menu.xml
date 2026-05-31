@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/homeFragment"
+            android:icon="@android:drawable/ic_menu_myplaces"
+            android:title="@string/nav_home" />
+        <item
+            android:id="@+id/coursesFragment"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="@string/nav_courses" />
+        <item
+            android:id="@+id/attendanceFragment"
+            android:icon="@android:drawable/ic_menu_day"
+            android:title="@string/nav_attendance" />
+        <item
+            android:id="@+id/timetableFragment"
+            android:icon="@android:drawable/ic_menu_today"
+            android:title="@string/nav_timetable" />
+        <item
+            android:id="@+id/assignmentsFragment"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="@string/nav_assignments" />
+        <item
+            android:id="@+id/examsFragment"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="@string/nav_exams" />
+        <item
+            android:id="@+id/gpaFragment"
+            android:icon="@android:drawable/star_on"
+            android:title="@string/nav_gpa" />
+    </group>
+
+    <item android:title="System">
+        <menu>
+            <item
+                android:id="@+id/settingsFragment"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="@string/nav_settings" />
+        </menu>
+    </item>
+</menu>

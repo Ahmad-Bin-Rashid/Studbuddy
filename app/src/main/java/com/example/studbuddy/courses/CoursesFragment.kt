@@ -1,29 +1,29 @@
 package com.example.studbuddy.courses
 
 import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.viewModels
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.BaseActivity
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import java.util.*
 
-class CourseActivity : BaseActivity() {
+class CoursesFragment : Fragment() {
 
     private lateinit var recyclerViewCourses: RecyclerView
     private lateinit var courseAdapter: CourseAdapter
     private val courseList = mutableListOf<Course>()
 
     private val viewModel: CourseViewModel by viewModels {
-        ViewModelFactory((application as StudBuddyApp).repository)
+        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
     }
 
     private val gradeMap = mapOf(
@@ -41,47 +41,49 @@ class CourseActivity : BaseActivity() {
         "F" to 0.0
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_course)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_courses, container, false)
+    }
 
-        setupViews()
-        setupSidebar()
-        setupRecyclerView()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupViews(view)
+        setupRecyclerView(view)
         observeViewModel()
     }
 
-    private fun setupViews() {
-        findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
+    private fun setupViews(view: View) {
+        view.findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
             val semester = viewModel.semester.value
             if (semester == null) {
-                Toast.makeText(this, "Please setup a semester first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please setup a semester first", Toast.LENGTH_SHORT).show()
             } else {
                 showCourseDialog(null)
             }
         }
     }
 
-    private fun setupRecyclerView() {
-        recyclerViewCourses = findViewById(R.id.recyclerViewCourses)
+    private fun setupRecyclerView(view: View) {
+        recyclerViewCourses = view.findViewById(R.id.recyclerViewCourses)
         courseAdapter = CourseAdapter(courseList) { course ->
             showCourseDialog(course)
         }
-        recyclerViewCourses.layoutManager = LinearLayoutManager(this)
+        recyclerViewCourses.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewCourses.adapter = courseAdapter
     }
 
     private fun observeViewModel() {
-        viewModel.courses.observe(this) { courses ->
+        viewModel.courses.observe(viewLifecycleOwner) { courses ->
             courseAdapter.updateData(courses, viewModel.semester.value)
         }
-        viewModel.semester.observe(this) { semester ->
+        viewModel.semester.observe(viewLifecycleOwner) { semester ->
             courseAdapter.updateData(viewModel.courses.value ?: emptyList(), semester)
         }
     }
 
     private fun showCourseDialog(existingCourse: Course?) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_course, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_course, null)
         val etName = dialogView.findViewById<EditText>(R.id.etCourseName)
         val etInstructor = dialogView.findViewById<EditText>(R.id.etInstructor)
         val etCredits = dialogView.findViewById<EditText>(R.id.etCredits)
@@ -89,7 +91,7 @@ class CourseActivity : BaseActivity() {
         val tvGpDisplay = dialogView.findViewById<TextView>(R.id.tvGradePointsDisplay)
 
         val grades = gradeMap.keys.toList()
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, grades)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerGrade.adapter = adapter
 
@@ -117,7 +119,7 @@ class CourseActivity : BaseActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(requireContext())
             .setTitle(if (existingCourse == null) "Add Course" else "Edit Course")
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
@@ -149,13 +151,8 @@ class CourseActivity : BaseActivity() {
                     } else {
                         viewModel.updateCourse(course)
                     }
-                    
-                    // Send broadcast to update GPA Activity (legacy)
-                    val intent = Intent("com.example.studbuddy.GPA_UPDATE")
-                    intent.`package` = packageName
-                    sendBroadcast(intent)
                 } else {
-                    Toast.makeText(this, "Please enter valid details", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Please enter valid details", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)
