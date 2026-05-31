@@ -2,7 +2,6 @@ package com.example.studbuddy
 
 import android.app.Application
 import com.example.studbuddy.core.db.StudBuddyDatabase
-import com.example.studbuddy.core.migration.LegacyMigrationHelper
 import com.example.studbuddy.core.repository.StudBuddyRepository
 
 class StudBuddyApp : Application() {
@@ -12,7 +11,5 @@ class StudBuddyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Handle migration from legacy SharedPreferences/JSON if needed
-        LegacyMigrationHelper.migrateIfNeeded(this, database)
     }
 }
