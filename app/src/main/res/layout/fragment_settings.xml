@@ -78,6 +78,13 @@
                 android:checked="true"
                 android:text="Exam Reminders" />
 
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbMorningBriefing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Daily Morning Briefing" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

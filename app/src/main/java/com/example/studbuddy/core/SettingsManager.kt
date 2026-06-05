@@ -12,6 +12,7 @@ class SettingsManager(context: Context) {
         private const val KEY_LECTURE_REMINDERS = "lecture_reminders"
         private const val KEY_ASSIGNMENT_REMINDERS = "assignment_reminders"
         private const val KEY_EXAM_REMINDERS = "exam_reminders"
+        private const val KEY_MORNING_BRIEFING = "morning_briefing"
         private const val KEY_DARK_MODE = "dark_mode"
     }
 
@@ -26,7 +27,11 @@ class SettingsManager(context: Context) {
     var examRemindersEnabled: Boolean
         get() = prefs.getBoolean(KEY_EXAM_REMINDERS, true)
         set(value) = prefs.edit().putBoolean(KEY_EXAM_REMINDERS, value).apply()
-        
+
+    var morningBriefingEnabled: Boolean
+        get() = prefs.getBoolean(KEY_MORNING_BRIEFING, true)
+        set(value) = prefs.edit().putBoolean(KEY_MORNING_BRIEFING, value).apply()
+
     var darkModeEnabled: Boolean
         get() = prefs.getBoolean(KEY_DARK_MODE, false)
         set(value) = prefs.edit().putBoolean(KEY_DARK_MODE, value).apply()

@@ -16,6 +16,7 @@ class SettingsFragment : Fragment() {
     private lateinit var cbLectureReminders: CheckBox
     private lateinit var cbAssignmentReminders: CheckBox
     private lateinit var cbExamReminders: CheckBox
+    private lateinit var cbMorningBriefing: CheckBox
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_settings, container, false)
@@ -30,12 +31,14 @@ class SettingsFragment : Fragment() {
         cbLectureReminders = view.findViewById(R.id.cbLectureReminders)
         cbAssignmentReminders = view.findViewById(R.id.cbAssignmentReminders)
         cbExamReminders = view.findViewById(R.id.cbExamReminders)
+        cbMorningBriefing = view.findViewById(R.id.cbMorningBriefing)
 
         // Initialize checkboxes from SettingsManager
         cbDarkMode.isChecked = settingsManager.darkModeEnabled
         cbLectureReminders.isChecked = settingsManager.lectureRemindersEnabled
         cbAssignmentReminders.isChecked = settingsManager.assignmentRemindersEnabled
         cbExamReminders.isChecked = settingsManager.examRemindersEnabled
+        cbMorningBriefing.isChecked = settingsManager.morningBriefingEnabled
 
         cbDarkMode.setOnCheckedChangeListener { _, isChecked ->
             settingsManager.darkModeEnabled = isChecked
@@ -56,6 +59,10 @@ class SettingsFragment : Fragment() {
 
         cbExamReminders.setOnCheckedChangeListener { _, isChecked ->
             settingsManager.examRemindersEnabled = isChecked
+        }
+
+        cbMorningBriefing.setOnCheckedChangeListener { _, isChecked ->
+            settingsManager.morningBriefingEnabled = isChecked
         }
     }
 }
