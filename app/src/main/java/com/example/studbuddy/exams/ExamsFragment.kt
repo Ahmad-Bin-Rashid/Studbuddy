@@ -1,11 +1,7 @@
 package com.example.studbuddy.exams
 
-import android.app.AlarmManager
 import android.app.DatePickerDialog
-import android.app.PendingIntent
 import android.app.TimePickerDialog
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +21,8 @@ import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.ExamType
+import com.example.studbuddy.core.notifications.NotificationScheduler
+import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -212,43 +210,12 @@ class ExamsFragment : Fragment() {
     }
 
     private fun scheduleExamReminder(exam: Exam) {
-        val triggerTime = exam.date - TimeUnit.HOURS.toMillis(1)
-        if (triggerTime <= System.currentTimeMillis()) return
-
-        val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
-            val course = viewModel.uiState.value.courses.find { it.id == exam.courseId }
-            putExtra("exam_id", exam.id)
-            putExtra("course_name", course?.name ?: "Unknown Course")
-            putExtra("type", exam.type.name)
-            putExtra("venue", exam.venue ?: "Not set")
-            putExtra("time", SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(exam.date)))
-            `package` = requireContext().packageName
-        }
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), exam.id.hashCode(), intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        try {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        } catch (e: SecurityException) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        }
+        val course = viewModel.uiState.value.courses.find { it.id == exam.courseId }
+        NotificationScheduler.scheduleExamReminders(requireContext(), exam, course?.name ?: "Unknown")
     }
 
     private fun cancelExamReminder(exam: Exam) {
-        val intent = Intent("com.example.studbuddy.EXAM_REMINDER").apply {
-            `package` = requireContext().packageName
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), exam.id.hashCode(), intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        pendingIntent?.let {
-            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.cancel(it)
-        }
+        NotificationScheduler.cancelReminder(requireContext(), NotificationType.EXAM_REMINDER, "${exam.id}_24h")
+        NotificationScheduler.cancelReminder(requireContext(), NotificationType.EXAM_REMINDER, "${exam.id}_1h")
     }
 }

@@ -18,6 +18,8 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.TimetableEntry
+import com.example.studbuddy.core.notifications.NotificationScheduler
+import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.util.*
@@ -124,6 +126,7 @@ class TimetableFragment : Fragment() {
 
         if (existing != null) {
             dialog.setNeutralButton(R.string.delete_button) { _, _ ->
+                cancelClassReminder(existing.id)
                 viewModel.deleteTimetableEntry(existing.id)
                 Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
             }
@@ -156,10 +159,20 @@ class TimetableFragment : Fragment() {
                 } else {
                     viewModel.updateTimetableEntry(entry)
                 }
+                scheduleClassReminder(entry)
                 alertDialog.dismiss()
             } else {
                 Toast.makeText(requireContext(), "Please enter a room/place", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun scheduleClassReminder(entry: TimetableEntry) {
+        val course = viewModel.uiState.value.courses.find { it.id == entry.courseId }
+        NotificationScheduler.scheduleTimetableReminder(requireContext(), entry, course?.name ?: "Unknown")
+    }
+
+    private fun cancelClassReminder(entryId: String) {
+        NotificationScheduler.cancelReminder(requireContext(), NotificationType.TIMETABLE_CLASS, entryId)
     }
 }

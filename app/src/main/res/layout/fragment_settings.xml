@@ -71,6 +71,13 @@
                 android:checked="true"
                 android:text="Assignment Reminders" />
 
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbExamReminders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Exam Reminders" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
