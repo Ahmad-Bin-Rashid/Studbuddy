@@ -2,13 +2,28 @@ package com.example.studbuddy.assignments
 
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Assignment
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+data class AssignmentsUiState(
+    val assignments: List<Assignment> = emptyList(),
+    val courses: List<Course> = emptyList()
+)
 
 class AssignmentsViewModel(private val repository: StudBuddyRepository) : ViewModel() {
 
-    val assignments = repository.getAssignmentsFlow().asLiveData()
-    val courses = repository.getCoursesFlow().asLiveData()
+    val uiState: StateFlow<AssignmentsUiState> = combine(
+        repository.getAssignmentsFlow(),
+        repository.getCoursesFlow()
+    ) { assignments, courses ->
+        AssignmentsUiState(assignments, courses)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AssignmentsUiState()
+    )
 
     fun updateAssignment(assignment: Assignment) {
         viewModelScope.launch {

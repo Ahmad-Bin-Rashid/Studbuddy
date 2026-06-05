@@ -7,11 +7,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
+import kotlinx.coroutines.launch
 import java.util.*
 
 class GpaFragment : Fragment() {
@@ -50,12 +54,13 @@ class GpaFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.courses.observe(viewLifecycleOwner) { courses ->
-            gpaAdapter.updateList(courses)
-        }
-        
-        viewModel.calculatedGpa.observe(viewLifecycleOwner) { gpa ->
-            tvSemesterGpa.text = String.format(Locale.getDefault(), "%.2f", gpa)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    gpaAdapter.updateList(state.courses)
+                    tvSemesterGpa.text = String.format(Locale.getDefault(), "%.2f", state.calculatedGpa)
+                }
+            }
         }
     }
 }

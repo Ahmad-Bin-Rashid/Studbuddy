@@ -4,12 +4,26 @@ import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+data class CourseUiState(
+    val courses: List<Course> = emptyList(),
+    val semester: Semester? = null
+)
 
 class CourseViewModel(private val repository: StudBuddyRepository) : ViewModel() {
 
-    val courses = repository.getCoursesFlow().asLiveData()
-    val semester = repository.getSemesterFlow().asLiveData()
+    val uiState: StateFlow<CourseUiState> = combine(
+        repository.getCoursesFlow(),
+        repository.getSemesterFlow()
+    ) { courses, semester ->
+        CourseUiState(courses, semester)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CourseUiState()
+    )
 
     fun addCourse(course: Course) {
         viewModelScope.launch {

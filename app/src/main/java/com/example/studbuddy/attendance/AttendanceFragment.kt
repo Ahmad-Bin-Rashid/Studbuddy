@@ -7,6 +7,9 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
@@ -15,6 +18,7 @@ import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import java.util.*
 
 class AttendanceFragment : Fragment() {
@@ -41,7 +45,7 @@ class AttendanceFragment : Fragment() {
 
     private fun setupViews(view: View) {
         view.findViewById<Button>(R.id.btnMarkAttendance).setOnClickListener {
-            if (viewModel.courses.value.isNullOrEmpty()) {
+            if (viewModel.uiState.value.courses.isEmpty()) {
                 Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showMarkAttendanceDialog(null)
@@ -59,11 +63,12 @@ class AttendanceFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.courses.observe(viewLifecycleOwner) { courses ->
-            attendanceAdapter.updateData(courses, viewModel.attendance.value ?: emptyList())
-        }
-        viewModel.attendance.observe(viewLifecycleOwner) { records ->
-            attendanceAdapter.updateData(viewModel.courses.value ?: emptyList(), records)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    attendanceAdapter.updateData(state.courses, state.attendance)
+                }
+            }
         }
     }
 
@@ -72,7 +77,7 @@ class AttendanceFragment : Fragment() {
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val rgStatus = dialogView.findViewById<RadioGroup>(R.id.rgStatus)
 
-        val courses = viewModel.courses.value ?: emptyList()
+        val courses = viewModel.uiState.value.courses
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
 
         existingRecord?.let { record ->
@@ -135,7 +140,7 @@ class AttendanceFragment : Fragment() {
 
         tvCourseName.text = String.format(Locale.getDefault(), "History for %s", course.name)
         
-        val records = (viewModel.attendance.value ?: emptyList())
+        val records = viewModel.uiState.value.attendance
             .filter { it.courseId == course.id }
             .sortedByDescending { it.dateTime }
         

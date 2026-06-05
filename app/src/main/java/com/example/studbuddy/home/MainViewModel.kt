@@ -3,9 +3,8 @@ package com.example.studbuddy.home
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.*
 import com.example.studbuddy.core.repository.StudBuddyRepository
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 
 data class DashboardUiState(
     val semester: Semester? = null,
@@ -18,26 +17,27 @@ data class DashboardUiState(
 
 class MainViewModel(private val repository: StudBuddyRepository) : ViewModel() {
 
-    private val _uiState = MediatorLiveData<DashboardUiState>()
-    val uiState: LiveData<DashboardUiState> = _uiState
-
-    init {
-        _uiState.value = DashboardUiState()
-        
-        val semesterFlow = repository.getSemesterFlow().asLiveData()
-        val coursesFlow = repository.getCoursesFlow().asLiveData()
-        val timetableFlow = repository.getTimetableFlow().asLiveData()
-        val attendanceFlow = repository.getAttendanceFlow().asLiveData()
-        val assignmentsFlow = repository.getAssignmentsFlow().asLiveData()
-        val examsFlow = repository.getExamsFlow().asLiveData()
-
-        _uiState.addSource(semesterFlow) { _uiState.value = _uiState.value?.copy(semester = it) }
-        _uiState.addSource(coursesFlow) { _uiState.value = _uiState.value?.copy(courses = it) }
-        _uiState.addSource(timetableFlow) { _uiState.value = _uiState.value?.copy(timetable = it) }
-        _uiState.addSource(attendanceFlow) { _uiState.value = _uiState.value?.copy(attendance = it) }
-        _uiState.addSource(assignmentsFlow) { _uiState.value = _uiState.value?.copy(assignments = it) }
-        _uiState.addSource(examsFlow) { _uiState.value = _uiState.value?.copy(exams = it) }
-    }
+    val uiState: StateFlow<DashboardUiState> = combine(
+        repository.getSemesterFlow(),
+        repository.getCoursesFlow(),
+        repository.getTimetableFlow(),
+        repository.getAttendanceFlow(),
+        repository.getAssignmentsFlow(),
+        repository.getExamsFlow()
+    ) { array ->
+        DashboardUiState(
+            semester = array[0] as Semester?,
+            courses = array[1] as List<Course>,
+            timetable = array[2] as List<TimetableEntry>,
+            attendance = array[3] as List<AttendanceRecord>,
+            assignments = array[4] as List<Assignment>,
+            exams = array[5] as List<Exam>
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DashboardUiState()
+    )
 
     fun saveSemester(semester: Semester) {
         viewModelScope.launch {

@@ -9,6 +9,9 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
@@ -16,6 +19,7 @@ import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.TimetableEntry
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import java.util.*
 
 class TimetableFragment : Fragment() {
@@ -40,7 +44,7 @@ class TimetableFragment : Fragment() {
 
     private fun setupViews(view: View) {
         view.findViewById<Button>(R.id.btnAddTimetableEntry).setOnClickListener {
-            if (viewModel.courses.value.isNullOrEmpty()) {
+            if (viewModel.uiState.value.courses.isEmpty()) {
                 Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showTimetableDialog(null)
@@ -52,11 +56,12 @@ class TimetableFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.timetable.observe(viewLifecycleOwner) { entries ->
-            updateAdapter(entries, viewModel.courses.value ?: emptyList())
-        }
-        viewModel.courses.observe(viewLifecycleOwner) { courses ->
-            updateAdapter(viewModel.timetable.value ?: emptyList(), courses)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    updateAdapter(state.timetable, state.courses)
+                }
+            }
         }
     }
 
@@ -76,7 +81,7 @@ class TimetableFragment : Fragment() {
         val btnEnd = dialogView.findViewById<Button>(R.id.btnEndTime)
         val etRoom = dialogView.findViewById<EditText>(R.id.etRoom)
 
-        val courses = viewModel.courses.value ?: emptyList()
+        val courses = viewModel.uiState.value.courses
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
 
         val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")

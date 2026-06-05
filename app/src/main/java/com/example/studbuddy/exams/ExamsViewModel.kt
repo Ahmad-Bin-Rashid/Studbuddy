@@ -1,14 +1,29 @@
 package com.example.studbuddy.exams
 
 import androidx.lifecycle.*
+import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+data class ExamsUiState(
+    val exams: List<Exam> = emptyList(),
+    val courses: List<Course> = emptyList()
+)
 
 class ExamsViewModel(private val repository: StudBuddyRepository) : ViewModel() {
 
-    val exams = repository.getExamsFlow().asLiveData()
-    val courses = repository.getCoursesFlow().asLiveData()
+    val uiState: StateFlow<ExamsUiState> = combine(
+        repository.getExamsFlow(),
+        repository.getCoursesFlow()
+    ) { exams, courses ->
+        ExamsUiState(exams, courses)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ExamsUiState()
+    )
 
     fun updateExam(exam: Exam) {
         viewModelScope.launch {

@@ -7,6 +7,9 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
@@ -14,6 +17,7 @@ import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import java.util.*
 
 class CoursesFragment : Fragment() {
@@ -55,7 +59,7 @@ class CoursesFragment : Fragment() {
 
     private fun setupViews(view: View) {
         view.findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
-            val semester = viewModel.semester.value
+            val semester = viewModel.uiState.value.semester
             if (semester == null) {
                 Toast.makeText(requireContext(), "Please setup a semester first", Toast.LENGTH_SHORT).show()
             } else {
@@ -74,11 +78,12 @@ class CoursesFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.courses.observe(viewLifecycleOwner) { courses ->
-            courseAdapter.updateData(courses, viewModel.semester.value)
-        }
-        viewModel.semester.observe(viewLifecycleOwner) { semester ->
-            courseAdapter.updateData(viewModel.courses.value ?: emptyList(), semester)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    courseAdapter.updateData(state.courses, state.semester)
+                }
+            }
         }
     }
 
@@ -129,7 +134,7 @@ class CoursesFragment : Fragment() {
                 val selectedGrade = spinnerGrade.selectedItem.toString()
                 val basePoints = gradeMap[selectedGrade] ?: -1.0
                 
-                val semester = viewModel.semester.value
+                val semester = viewModel.uiState.value.semester
                 
                 if (name.isNotEmpty() && credits > 0 && semester != null) {
                     val gradePoints = if (basePoints >= 0) basePoints * credits else 0.0

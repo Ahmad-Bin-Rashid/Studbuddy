@@ -13,6 +13,9 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
@@ -20,6 +23,7 @@ import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Assignment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -52,7 +56,7 @@ class AssignmentsFragment : Fragment() {
 
     private fun setupViews(view: View) {
         view.findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
-            if (viewModel.courses.value.isNullOrEmpty()) {
+            if (viewModel.uiState.value.courses.isEmpty()) {
                 Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
                 showAssignmentDialog(null)
@@ -84,11 +88,12 @@ class AssignmentsFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.assignments.observe(viewLifecycleOwner) { allAssignments ->
-            updateAdapters(allAssignments, viewModel.courses.value ?: emptyList())
-        }
-        viewModel.courses.observe(viewLifecycleOwner) { allCourses ->
-            updateAdapters(viewModel.assignments.value ?: emptyList(), allCourses)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    updateAdapters(state.assignments, state.courses)
+                }
+            }
         }
     }
 
@@ -121,7 +126,7 @@ class AssignmentsFragment : Fragment() {
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
-        val courses = viewModel.courses.value ?: emptyList()
+        val courses = viewModel.uiState.value.courses
         val courseNames = courses.map { it.name }
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courseNames)
 
