@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.example.studbuddy.StudBuddyApp
+import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.models.Assignment
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.TimetableEntry
@@ -18,7 +19,7 @@ object NotificationScheduler {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
         if (!settingsManager.assignmentRemindersEnabled) return
 
-        val triggerTime = assignment.dueDate - TimeUnit.HOURS.toMillis(24)
+        val triggerTime = assignment.dueDate - TimeUnit.HOURS.toMillis(settingsManager.assignmentLeadTime.toLong())
         if (triggerTime <= System.currentTimeMillis()) return
 
         val intent = createBaseIntent(context, NotificationType.ASSIGNMENT_DUE, assignment.id).apply {
@@ -33,10 +34,13 @@ object NotificationScheduler {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
         if (!settingsManager.examRemindersEnabled) return
 
-        // 24h before
-        scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(24), "24h")
-        // 1h before
-        scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(1), "1h")
+        // User lead time
+        scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(settingsManager.examLeadTime.toLong()), "${settingsManager.examLeadTime}h")
+        
+        // 1h before as a fail-safe (unless user lead time is already <= 1h)
+        if (settingsManager.examLeadTime > 1) {
+            scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(1), "1h")
+        }
     }
 
     private fun scheduleExamAlarm(context: Context, exam: Exam, courseName: String, offsetMs: Long, suffix: String) {
@@ -45,7 +49,8 @@ object NotificationScheduler {
 
         val intent = createBaseIntent(context, NotificationType.EXAM_REMINDER, "${exam.id}_$suffix").apply {
             putExtra(AlarmReceiver.EXTRA_TITLE, "Upcoming Exam")
-            val leadTime = if (offsetMs == TimeUnit.HOURS.toMillis(24)) "24 hours" else "1 hour"
+            val hours = offsetMs / 3_600_000
+            val leadTime = if (hours >= 24) "${hours / 24} day" else "$hours hour"
             putExtra(AlarmReceiver.EXTRA_BODY, "${exam.type} for $courseName in $leadTime.")
         }
 
@@ -54,18 +59,21 @@ object NotificationScheduler {
 
     fun scheduleTimetableReminder(context: Context, entry: TimetableEntry, courseName: String) {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
-        if (!settingsManager.lectureRemindersEnabled) return
+        if (settingsManager.classReminderMode != SettingsManager.MODE_EACH_LECTURE) return
 
         val nextClassTime = getNextClassTime(entry.dayOfWeek, entry.startTime) ?: return
-        val triggerTime = nextClassTime - TimeUnit.MINUTES.toMillis(15)
+        val triggerTime = nextClassTime - TimeUnit.MINUTES.toMillis(settingsManager.lectureLeadTime.toLong())
         
-        // If 15m before class is already passed for TODAY, getNextClassTime will already return next week.
+        // If lead time before class is already passed for TODAY, getNextClassTime will already return next week.
         // But double check
         if (triggerTime <= System.currentTimeMillis()) return
 
         val intent = createBaseIntent(context, NotificationType.TIMETABLE_CLASS, entry.id).apply {
             putExtra(AlarmReceiver.EXTRA_TITLE, "Class Reminder")
-            putExtra(AlarmReceiver.EXTRA_BODY, "$courseName starts in 15 minutes in room ${entry.room}.")
+            val leadTime = settingsManager.lectureLeadTime
+            val timeUnit = if (leadTime >= 60) "hour" else "minutes"
+            val displayTime = if (leadTime >= 60) leadTime / 60 else leadTime
+            putExtra(AlarmReceiver.EXTRA_BODY, "$courseName starts in $displayTime $timeUnit in room ${entry.room}.")
         }
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -96,6 +104,61 @@ object NotificationScheduler {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(it)
             it.cancel()
+        }
+    }
+
+    suspend fun rescheduleAllClassReminders(context: Context) {
+        val app = context.applicationContext as StudBuddyApp
+        val repository = app.repository
+        val settingsManager = app.settingsManager
+
+        val timetable = repository.getTimetable()
+        val courses = repository.getCourses().associateBy { it.id }
+
+        timetable.forEach { entry ->
+            // Always cancel first to avoid duplicates or orphaned alarms
+            cancelReminder(context, NotificationType.TIMETABLE_CLASS, entry.id)
+            
+            if (settingsManager.classReminderMode == SettingsManager.MODE_EACH_LECTURE) {
+                scheduleTimetableReminder(context, entry, courses[entry.courseId]?.name ?: "Unknown")
+            }
+        }
+    }
+
+    suspend fun rescheduleAllAssignmentReminders(context: Context) {
+        val app = context.applicationContext as StudBuddyApp
+        val repository = app.repository
+        val settingsManager = app.settingsManager
+
+        val assignments = repository.getAssignments()
+        val courses = repository.getCourses().associateBy { it.id }
+
+        assignments.forEach { assignment ->
+            cancelReminder(context, NotificationType.ASSIGNMENT_DUE, assignment.id)
+            if (settingsManager.assignmentRemindersEnabled && !assignment.isCompleted) {
+                scheduleAssignmentReminder(context, assignment, courses[assignment.courseId]?.name ?: "Unknown")
+            }
+        }
+    }
+
+    suspend fun rescheduleAllExamReminders(context: Context) {
+        val app = context.applicationContext as StudBuddyApp
+        val repository = app.repository
+        val settingsManager = app.settingsManager
+
+        val exams = repository.getExams()
+        val courses = repository.getCourses().associateBy { it.id }
+
+        exams.forEach { exam ->
+            // Cancel all potential suffixes
+            cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_24h")
+            cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_1h")
+            // Also cancel using current setting to be safe
+            cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_${settingsManager.examLeadTime}h")
+            
+            if (settingsManager.examRemindersEnabled && !exam.isCompleted) {
+                scheduleExamReminders(context, exam, courses[exam.courseId]?.name ?: "Unknown")
+            }
         }
     }
 

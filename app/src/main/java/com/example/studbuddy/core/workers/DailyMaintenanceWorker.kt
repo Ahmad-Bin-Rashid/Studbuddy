@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.studbuddy.StudBuddyApp
+import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationScheduler
 import com.example.studbuddy.core.notifications.NotificationType
@@ -20,7 +21,7 @@ class DailyMaintenanceWorker(
         val settingsManager = app.settingsManager
 
         // 1. Morning Briefing (Summary of today's lectures)
-        if (settingsManager.morningBriefingEnabled) {
+        if (settingsManager.classReminderMode == SettingsManager.MODE_DAILY_SUMMARY) {
             val calendar = Calendar.getInstance()
             val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
             val ourDayIndex = if (dayOfWeek == Calendar.SUNDAY) 7 else dayOfWeek - 1

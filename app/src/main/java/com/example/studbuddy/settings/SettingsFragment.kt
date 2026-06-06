@@ -7,16 +7,15 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
+import com.google.android.material.card.MaterialCardView
 
 class SettingsFragment : Fragment() {
 
     private lateinit var cbDarkMode: CheckBox
-    private lateinit var cbLectureReminders: CheckBox
-    private lateinit var cbAssignmentReminders: CheckBox
-    private lateinit var cbExamReminders: CheckBox
-    private lateinit var cbMorningBriefing: CheckBox
+    private lateinit var cardNotifications: MaterialCardView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_settings, container, false)
@@ -28,18 +27,10 @@ class SettingsFragment : Fragment() {
         val settingsManager = (requireActivity().application as StudBuddyApp).settingsManager
 
         cbDarkMode = view.findViewById(R.id.cbDarkMode)
-        cbLectureReminders = view.findViewById(R.id.cbLectureReminders)
-        cbAssignmentReminders = view.findViewById(R.id.cbAssignmentReminders)
-        cbExamReminders = view.findViewById(R.id.cbExamReminders)
-        cbMorningBriefing = view.findViewById(R.id.cbMorningBriefing)
+        cardNotifications = view.findViewById(R.id.cardNotifications)
 
-        // Initialize checkboxes from SettingsManager
+        // Dark Mode Logic
         cbDarkMode.isChecked = settingsManager.darkModeEnabled
-        cbLectureReminders.isChecked = settingsManager.lectureRemindersEnabled
-        cbAssignmentReminders.isChecked = settingsManager.assignmentRemindersEnabled
-        cbExamReminders.isChecked = settingsManager.examRemindersEnabled
-        cbMorningBriefing.isChecked = settingsManager.morningBriefingEnabled
-
         cbDarkMode.setOnCheckedChangeListener { _, isChecked ->
             settingsManager.darkModeEnabled = isChecked
             if (isChecked) {
@@ -49,20 +40,9 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        cbLectureReminders.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.lectureRemindersEnabled = isChecked
-        }
-
-        cbAssignmentReminders.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.assignmentRemindersEnabled = isChecked
-        }
-
-        cbExamReminders.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.examRemindersEnabled = isChecked
-        }
-
-        cbMorningBriefing.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.morningBriefingEnabled = isChecked
+        // Navigate to Notifications Sub-page
+        cardNotifications.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_notificationSettingsFragment)
         }
     }
 }

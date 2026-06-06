@@ -37,9 +37,12 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardNotifications"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
         style="?attr/materialCardViewElevatedStyle"
         app:cardCornerRadius="12dp">
 
@@ -56,34 +59,13 @@
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbLectureReminders"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:checked="true"
-                android:text="Lecture Reminders" />
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbAssignmentReminders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Assignment Reminders" />
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbExamReminders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Exam Reminders" />
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbMorningBriefing"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Daily Morning Briefing" />
+                android:layout_marginTop="4dp"
+                android:text="Manage class reminders, exam alerts, and assignment deadlines."
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -22,7 +22,7 @@ class StudBuddyApp : Application() {
         scheduleDailyMaintenance()
     }
 
-    private fun scheduleDailyMaintenance() {
+    fun scheduleDailyMaintenance() {
         val maintenanceWork = PeriodicWorkRequestBuilder<DailyMaintenanceWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(calculateInitialDelay(), TimeUnit.MILLISECONDS)
             .build()
@@ -38,10 +38,13 @@ class StudBuddyApp : Application() {
         val calendar = Calendar.getInstance()
         val now = calendar.timeInMillis
         
-        // Target: 8:00 AM
+        val timeParts = settingsManager.dailySummaryTime.split(":")
+        val hour = timeParts[0].toInt()
+        val minute = timeParts[1].toInt()
+        
         val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 8)
-            set(Calendar.MINUTE, 0)
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
             if (before(calendar)) {

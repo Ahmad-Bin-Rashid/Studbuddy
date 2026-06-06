@@ -51,6 +51,16 @@
         android:id="@+id/settingsFragment"
         android:name="com.example.studbuddy.settings.SettingsFragment"
         android:label="@string/nav_settings"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_notificationSettingsFragment"
+            app:destination="@id/notificationSettingsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/notificationSettingsFragment"
+        android:name="com.example.studbuddy.settings.NotificationSettingsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notification_settings" />
 
 </navigation>
