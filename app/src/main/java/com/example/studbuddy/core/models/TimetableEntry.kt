@@ -25,5 +25,6 @@ data class TimetableEntry(
     val startTime: String,      // "HH:mm"
     val endTime: String,        // "HH:mm"
     val room: String,
-    val color: String
+    val color: String,
+    val lastModified: Long = System.currentTimeMillis()
 )

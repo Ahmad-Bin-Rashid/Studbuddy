@@ -11,7 +11,16 @@
     android:paddingRight="24dp"
     android:paddingBottom="8dp">
 
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgHeaderProfile"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        android:src="@android:drawable/ic_menu_gallery" />
+
     <TextView
+        android:id="@+id/txtHeaderName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -21,6 +30,7 @@
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/txtHeaderEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Your Personal Study Buddy"

@@ -13,11 +13,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.ViewModelFactory
+import com.google.android.material.transition.MaterialFadeThrough
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
 
+@AndroidEntryPoint
 class GpaFragment : Fragment() {
 
     private lateinit var tvSemesterGpa: TextView
@@ -25,8 +26,12 @@ class GpaFragment : Fragment() {
     private lateinit var recyclerViewCourses: RecyclerView
     private lateinit var gpaAdapter: GpaAdapter
 
-    private val viewModel: GpaViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
+    private val viewModel: GpaViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+        exitTransition = MaterialFadeThrough()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

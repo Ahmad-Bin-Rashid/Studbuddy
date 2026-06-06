@@ -4,21 +4,32 @@ import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class CourseUiState(
     val courses: List<Course> = emptyList(),
-    val semester: Semester? = null
+    val semester: Semester? = null,
+    val isLoading: Boolean = false
 )
 
-class CourseViewModel(private val repository: StudBuddyRepository) : ViewModel() {
+@HiltViewModel
+class CourseViewModel @Inject constructor(private val repository: StudBuddyRepository) : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(true)
 
     val uiState: StateFlow<CourseUiState> = combine(
         repository.getCoursesFlow(),
-        repository.getSemesterFlow()
-    ) { courses, semester ->
-        CourseUiState(courses, semester)
+        repository.getSemesterFlow(),
+        _isLoading
+    ) { courses, semester, loading ->
+        CourseUiState(courses, semester, loading)
+    }.onEach {
+        if (it.courses.isNotEmpty() || it.semester != null) {
+            _isLoading.value = false
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

@@ -29,6 +29,10 @@
             android:id="@+id/gpaFragment"
             android:icon="@android:drawable/star_on"
             android:title="@string/nav_gpa" />
+        <item
+            android:id="@+id/profileFragment"
+            android:icon="@android:drawable/ic_menu_my_calendar"
+            android:title="@string/nav_profile" />
     </group>
 
     <item android:title="System">

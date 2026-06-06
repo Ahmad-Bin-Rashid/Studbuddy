@@ -3,7 +3,8 @@ package com.example.studbuddy.core.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.example.studbuddy.StudBuddyApp
+import com.example.studbuddy.core.notifications.di.NotificationEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -16,8 +17,11 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
-        val app = context.applicationContext as StudBuddyApp
-        val repository = app.repository
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NotificationEntryPoint::class.java
+        )
+        val repository = entryPoint.studBuddyRepository()
 
         scope.launch {
             val courses = repository.getCourses()

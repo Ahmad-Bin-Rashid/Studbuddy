@@ -21,9 +21,24 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.imageview.ShapeableImageView
+import android.widget.ImageView
+import android.widget.TextView
+import android.net.Uri
+import com.example.studbuddy.core.SettingsManager
+import com.example.studbuddy.core.UserManager
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var settingsManager: SettingsManager
+
+    @Inject
+    lateinit var userManager: UserManager
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var drawerLayout: DrawerLayout
@@ -57,14 +72,28 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.homeFragment, R.id.coursesFragment, R.id.attendanceFragment,
                 R.id.timetableFragment, R.id.assignmentsFragment, R.id.examsFragment,
-                R.id.gpaFragment, R.id.settingsFragment
+                R.id.gpaFragment, R.id.settingsFragment, R.id.profileFragment
             ), drawerLayout
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        val settingsManager = (application as StudBuddyApp).settingsManager
+        val headerView = navView.getHeaderView(0)
+        val imgProfile = headerView.findViewById<ShapeableImageView>(R.id.imgHeaderProfile)
+        val txtName = headerView.findViewById<TextView>(R.id.txtHeaderName)
+        val txtEmail = headerView.findViewById<TextView>(R.id.txtHeaderEmail)
+
+        lifecycleScope.launch {
+            userManager.userFlow.collect { user ->
+                txtName.text = user.displayName
+                txtEmail.text = user.email ?: "Guest Mode"
+                user.profileImageUri?.let { uri ->
+                    imgProfile.setImageURI(Uri.parse(uri))
+                } ?: imgProfile.setImageResource(android.R.drawable.ic_menu_gallery)
+            }
+        }
+
         lifecycleScope.launch {
             settingsManager.themeMode.collect { mode ->
                 AppCompatDelegate.setDefaultNightMode(mode)

@@ -1,29 +1,75 @@
 package com.example.studbuddy
 
 import android.app.Application
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.*
 import com.example.studbuddy.core.SettingsManager
+import com.example.studbuddy.core.UserManager
 import com.example.studbuddy.core.db.StudBuddyDatabase
+import com.example.studbuddy.core.models.User
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import com.example.studbuddy.core.repository.SyncRepository
 import com.example.studbuddy.core.workers.DailyMaintenanceWorker
+import com.example.studbuddy.core.workers.SyncWorker
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class StudBuddyApp : Application() {
+@HiltAndroidApp
+class StudBuddyApp : Application(), Configuration.Provider {
     
-    val database by lazy { StudBuddyDatabase.getDatabase(this) }
-    val repository by lazy { StudBuddyRepository(database) }
-    val settingsManager by lazy { SettingsManager(this) }
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var userManager: UserManager
+
+    @Inject
+    lateinit var settingsManager: SettingsManager
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
         scheduleDailyMaintenance()
+        scheduleSync()
+        initializeUser()
+    }
+
+    private fun scheduleSync() {
+        val syncWork = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "data_sync",
+            ExistingPeriodicWorkPolicy.KEEP,
+            syncWork
+        )
+    }
+
+    private fun initializeUser() {
+        applicationScope.launch {
+            val user = userManager.userFlow.first()
+            if (user.id == "guest") {
+                userManager.setUser(User(
+                    id = UUID.randomUUID().toString(),
+                    displayName = "Guest User"
+                ))
+            }
+        }
     }
 
     fun scheduleDailyMaintenance() {

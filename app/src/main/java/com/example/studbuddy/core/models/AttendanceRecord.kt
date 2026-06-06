@@ -22,5 +22,6 @@ data class AttendanceRecord(
     val id: String,
     val courseId: String,
     val dateTime: Long,
-    val status: String // PRESENT, ABSENT, LATE
+    val status: String, // PRESENT, ABSENT, LATE
+    val lastModified: Long = System.currentTimeMillis()
 )

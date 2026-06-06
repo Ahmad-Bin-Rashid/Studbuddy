@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -16,30 +17,38 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.ExamType
 import com.example.studbuddy.core.notifications.NotificationScheduler
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.transition.MaterialFadeThrough
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class ExamsFragment : Fragment() {
 
     private lateinit var rvPending: RecyclerView
     private lateinit var rvCompleted: RecyclerView
     private lateinit var pendingAdapter: ExamAdapter
     private lateinit var completedAdapter: ExamAdapter
+    private lateinit var progressBar: ProgressBar
+    private lateinit var layoutEmpty: View
+    private lateinit var scrollView: View
     
     private val pendingList = mutableListOf<Exam>()
     private val completedList = mutableListOf<Exam>()
 
-    private val viewModel: ExamsViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
+    private val viewModel: ExamsViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+        exitTransition = MaterialFadeThrough()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,6 +58,10 @@ class ExamsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        progressBar = view.findViewById(R.id.progressBar)
+        layoutEmpty = view.findViewById(R.id.layoutEmpty)
+        scrollView = view.findViewById(R.id.scrollView)
+        
         setupViews(view)
         setupRecyclerViews(view)
         observeViewModel()
@@ -82,9 +95,31 @@ class ExamsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    updateAdapters(state.exams, state.courses)
+                    progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    
+                    if (!state.isLoading) {
+                        updateAdapters(state.exams, state.courses)
+                        updateEmptyState(state.exams.isEmpty())
+                    }
                 }
             }
+        }
+    }
+
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
+            if (layoutEmpty.visibility != View.VISIBLE) {
+                layoutEmpty.visibility = View.VISIBLE
+                layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
+                
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_info_details)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_exams_title)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_exams_desc)
+            }
+            scrollView.visibility = View.GONE
+        } else {
+            layoutEmpty.visibility = View.GONE
+            scrollView.visibility = View.VISIBLE
         }
     }
 

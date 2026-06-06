@@ -13,22 +13,27 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Semester
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.transition.MaterialFadeThrough
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private lateinit var btnSetupSemester: Button
     private lateinit var cardSetupSemester: CardView
     private lateinit var dashboardItemsContainer: LinearLayout
 
-    private val viewModel: MainViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
+    private val viewModel: MainViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+        exitTransition = MaterialFadeThrough()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

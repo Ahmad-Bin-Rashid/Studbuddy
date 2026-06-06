@@ -48,6 +48,12 @@
         tools:layout="@layout/fragment_gpa" />
 
     <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.studbuddy.profile.ProfileFragment"
+        android:label="@string/nav_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.studbuddy.settings.SettingsFragment"
         android:label="@string/nav_settings"

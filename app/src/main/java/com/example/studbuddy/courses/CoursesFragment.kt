@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,22 +14,23 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.Course
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.transition.MaterialFadeThrough
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
 
+@AndroidEntryPoint
 class CoursesFragment : Fragment() {
 
     private lateinit var recyclerViewCourses: RecyclerView
     private lateinit var courseAdapter: CourseAdapter
+    private lateinit var progressBar: ProgressBar
+    private lateinit var layoutEmpty: View
     private val courseList = mutableListOf<Course>()
 
-    private val viewModel: CourseViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
-    }
+    private val viewModel: CourseViewModel by viewModels()
 
     private val gradeMap = mapOf(
         "Select Grade" to -1.0,
@@ -45,6 +47,12 @@ class CoursesFragment : Fragment() {
         "F" to 0.0
     )
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+        exitTransition = MaterialFadeThrough()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_courses, container, false)
     }
@@ -52,6 +60,9 @@ class CoursesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        progressBar = view.findViewById(R.id.progressBar)
+        layoutEmpty = view.findViewById(R.id.layoutEmpty)
+        
         setupViews(view)
         setupRecyclerView(view)
         observeViewModel()
@@ -81,9 +92,32 @@ class CoursesFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    courseAdapter.updateData(state.courses, state.semester)
+                    progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    
+                    if (!state.isLoading) {
+                        courseAdapter.updateData(state.courses, state.semester)
+                        updateEmptyState(state.courses.isEmpty())
+                    }
                 }
             }
+        }
+    }
+
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
+            if (layoutEmpty.visibility != View.VISIBLE) {
+                layoutEmpty.visibility = View.VISIBLE
+                layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
+                
+                // Customize empty state for courses
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_agenda)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_courses_title)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_courses_desc)
+            }
+            recyclerViewCourses.visibility = View.GONE
+        } else {
+            layoutEmpty.visibility = View.GONE
+            recyclerViewCourses.visibility = View.VISIBLE
         }
     }
 

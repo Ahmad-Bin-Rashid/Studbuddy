@@ -5,19 +5,28 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.models.Assignment
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.TimetableEntry
+import com.example.studbuddy.core.notifications.di.NotificationEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 object NotificationScheduler {
 
+    private fun getSettingsManager(context: Context): SettingsManager {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NotificationEntryPoint::class.java
+        )
+        return entryPoint.settingsManager()
+    }
+
     suspend fun scheduleAssignmentReminder(context: Context, assignment: Assignment, courseName: String) {
-        val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
+        val settingsManager = getSettingsManager(context)
         val enabled = settingsManager.assignmentRemindersEnabled.first()
         if (!enabled) return
 
@@ -34,7 +43,7 @@ object NotificationScheduler {
     }
 
     suspend fun scheduleExamReminders(context: Context, exam: Exam, courseName: String) {
-        val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
+        val settingsManager = getSettingsManager(context)
         val enabled = settingsManager.examRemindersEnabled.first()
         if (!enabled) return
 
@@ -63,7 +72,7 @@ object NotificationScheduler {
     }
 
     suspend fun scheduleTimetableReminder(context: Context, entry: TimetableEntry, courseName: String) {
-        val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
+        val settingsManager = getSettingsManager(context)
         val mode = settingsManager.classReminderMode.first()
         if (mode != SettingsManager.MODE_EACH_LECTURE) return
 
@@ -114,9 +123,12 @@ object NotificationScheduler {
     }
 
     suspend fun rescheduleAllClassReminders(context: Context) {
-        val app = context.applicationContext as StudBuddyApp
-        val repository = app.repository
-        val settingsManager = app.settingsManager
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NotificationEntryPoint::class.java
+        )
+        val repository = entryPoint.studBuddyRepository()
+        val settingsManager = entryPoint.settingsManager()
 
         val timetable = repository.getTimetable()
         val courses = repository.getCourses().associateBy { it.id }
@@ -133,9 +145,12 @@ object NotificationScheduler {
     }
 
     suspend fun rescheduleAllAssignmentReminders(context: Context) {
-        val app = context.applicationContext as StudBuddyApp
-        val repository = app.repository
-        val settingsManager = app.settingsManager
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NotificationEntryPoint::class.java
+        )
+        val repository = entryPoint.studBuddyRepository()
+        val settingsManager = entryPoint.settingsManager()
 
         val assignments = repository.getAssignments()
         val courses = repository.getCourses().associateBy { it.id }
@@ -150,9 +165,12 @@ object NotificationScheduler {
     }
 
     suspend fun rescheduleAllExamReminders(context: Context) {
-        val app = context.applicationContext as StudBuddyApp
-        val repository = app.repository
-        val settingsManager = app.settingsManager
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            NotificationEntryPoint::class.java
+        )
+        val repository = entryPoint.studBuddyRepository()
+        val settingsManager = entryPoint.settingsManager()
 
         val exams = repository.getExams()
         val courses = repository.getCourses().associateBy { it.id }

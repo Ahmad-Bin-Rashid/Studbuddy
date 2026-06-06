@@ -8,14 +8,16 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import kotlinx.coroutines.flow.first
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class AppearanceSettingsFragment : Fragment() {
 
+    private val viewModel: SettingsViewModel by viewModels()
     private lateinit var rgThemeMode: RadioGroup
     private lateinit var rbSystem: RadioButton
     private lateinit var rbLight: RadioButton
@@ -28,20 +30,19 @@ class AppearanceSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val settingsManager = (requireActivity().application as StudBuddyApp).settingsManager
-
         rgThemeMode = view.findViewById(R.id.rgThemeMode)
         rbSystem = view.findViewById(R.id.rbSystem)
         rbLight = view.findViewById(R.id.rbLight)
         rbDark = view.findViewById(R.id.rbDark)
 
-        // Initialize from SettingsManager
+        // Initialize from ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
-            val mode = settingsManager.themeMode.first()
-            when (mode) {
-                AppCompatDelegate.MODE_NIGHT_NO -> rbLight.isChecked = true
-                AppCompatDelegate.MODE_NIGHT_YES -> rbDark.isChecked = true
-                else -> rbSystem.isChecked = true
+            viewModel.themeMode.collect { mode ->
+                when (mode) {
+                    AppCompatDelegate.MODE_NIGHT_NO -> rbLight.isChecked = true
+                    AppCompatDelegate.MODE_NIGHT_YES -> rbDark.isChecked = true
+                    else -> rbSystem.isChecked = true
+                }
             }
         }
 
@@ -51,9 +52,7 @@ class AppearanceSettingsFragment : Fragment() {
                 R.id.rbDark -> AppCompatDelegate.MODE_NIGHT_YES
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
-            viewLifecycleOwner.lifecycleScope.launch {
-                settingsManager.setThemeMode(mode)
-            }
+            viewModel.setThemeMode(mode)
         }
     }
 }

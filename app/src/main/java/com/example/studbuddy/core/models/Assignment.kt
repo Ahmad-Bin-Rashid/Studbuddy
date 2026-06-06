@@ -26,5 +26,6 @@ data class Assignment(
     val totalMarks: Double,
     val obtainedMarks: Double?,
     val weightage: Double,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val lastModified: Long = System.currentTimeMillis()
 )

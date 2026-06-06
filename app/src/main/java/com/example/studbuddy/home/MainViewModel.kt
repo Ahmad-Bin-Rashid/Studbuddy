@@ -3,8 +3,10 @@ package com.example.studbuddy.home
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.*
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class DashboardUiState(
     val semester: Semester? = null,
@@ -15,7 +17,8 @@ data class DashboardUiState(
     val exams: List<Exam> = emptyList()
 )
 
-class MainViewModel(private val repository: StudBuddyRepository) : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(private val repository: StudBuddyRepository) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = combine(
         repository.getSemesterFlow(),

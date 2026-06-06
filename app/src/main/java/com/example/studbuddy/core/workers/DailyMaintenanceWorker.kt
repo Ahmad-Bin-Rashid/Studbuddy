@@ -1,25 +1,28 @@
 package com.example.studbuddy.core.workers
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationScheduler
 import com.example.studbuddy.core.notifications.NotificationType
+import com.example.studbuddy.core.repository.StudBuddyRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import java.util.*
 
-class DailyMaintenanceWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class DailyMaintenanceWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val repository: StudBuddyRepository,
+    private val settingsManager: SettingsManager
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val app = applicationContext as StudBuddyApp
-        val repository = app.repository
-        val settingsManager = app.settingsManager
 
         // 1. Morning Briefing (Summary of today's lectures)
         val reminderMode = settingsManager.classReminderMode.first()

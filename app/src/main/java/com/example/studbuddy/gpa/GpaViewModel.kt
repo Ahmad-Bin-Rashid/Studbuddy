@@ -4,7 +4,9 @@ import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
 data class GpaUiState(
     val courses: List<Course> = emptyList(),
@@ -12,7 +14,8 @@ data class GpaUiState(
     val calculatedGpa: Double = 0.0
 )
 
-class GpaViewModel(private val repository: StudBuddyRepository) : ViewModel() {
+@HiltViewModel
+class GpaViewModel @Inject constructor(private val repository: StudBuddyRepository) : ViewModel() {
 
     val uiState: StateFlow<GpaUiState> = combine(
         repository.getCoursesFlow(),

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -15,22 +16,29 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
-import com.example.studbuddy.StudBuddyApp
-import com.example.studbuddy.core.ViewModelFactory
 import com.example.studbuddy.core.models.TimetableEntry
 import com.example.studbuddy.core.notifications.NotificationScheduler
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.transition.MaterialFadeThrough
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
 
+@AndroidEntryPoint
 class TimetableFragment : Fragment() {
 
     private lateinit var recyclerViewTimetable: RecyclerView
     private lateinit var dayTimetableAdapter: DayTimetableAdapter
+    private lateinit var progressBar: ProgressBar
+    private lateinit var layoutEmpty: View
 
-    private val viewModel: TimetableViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as StudBuddyApp).repository)
+    private val viewModel: TimetableViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+        exitTransition = MaterialFadeThrough()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -40,6 +48,9 @@ class TimetableFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        progressBar = view.findViewById(R.id.progressBar)
+        layoutEmpty = view.findViewById(R.id.layoutEmpty)
+        
         setupViews(view)
         observeViewModel()
     }
@@ -61,9 +72,31 @@ class TimetableFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    updateAdapter(state.timetable, state.courses)
+                    progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    
+                    if (!state.isLoading) {
+                        updateAdapter(state.timetable, state.courses)
+                        updateEmptyState(state.timetable.isEmpty())
+                    }
                 }
             }
+        }
+    }
+
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
+            if (layoutEmpty.visibility != View.VISIBLE) {
+                layoutEmpty.visibility = View.VISIBLE
+                layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
+                
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_today)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_timetable_title)
+                layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_timetable_desc)
+            }
+            recyclerViewTimetable.visibility = View.GONE
+        } else {
+            layoutEmpty.visibility = View.GONE
+            recyclerViewTimetable.visibility = View.VISIBLE
         }
     }
 

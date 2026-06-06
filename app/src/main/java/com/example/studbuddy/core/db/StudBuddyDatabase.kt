@@ -16,7 +16,7 @@ import com.example.studbuddy.core.models.*
         Assignment::class,
         Exam::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -38,7 +38,9 @@ abstract class StudBuddyDatabase : RoomDatabase() {
                     context.applicationContext,
                     StudBuddyDatabase::class.java,
                     "studbuddy_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration(true)
+                .build()
                 INSTANCE = instance
                 instance
             }
