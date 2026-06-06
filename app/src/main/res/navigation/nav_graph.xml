@@ -55,6 +55,9 @@
         <action
             android:id="@+id/action_settingsFragment_to_notificationSettingsFragment"
             app:destination="@id/notificationSettingsFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_appearanceSettingsFragment"
+            app:destination="@id/appearanceSettingsFragment" />
     </fragment>
 
     <fragment
@@ -62,5 +65,11 @@
         android:name="com.example.studbuddy.settings.NotificationSettingsFragment"
         android:label="Notifications"
         tools:layout="@layout/fragment_notification_settings" />
+
+    <fragment
+        android:id="@+id/appearanceSettingsFragment"
+        android:name="com.example.studbuddy.settings.AppearanceSettingsFragment"
+        android:label="Appearance"
+        tools:layout="@layout/fragment_appearance_settings" />
 
 </navigation>

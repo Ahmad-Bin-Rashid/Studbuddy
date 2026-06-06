@@ -63,11 +63,7 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         val settingsManager = (application as StudBuddyApp).settingsManager
-        if (settingsManager.darkModeEnabled) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
+        AppCompatDelegate.setDefaultNightMode(settingsManager.themeMode)
 
         NotificationHelper.createChannels(this)
         checkNotificationPermission()

@@ -2,6 +2,7 @@ package com.example.studbuddy.core
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
 
 class SettingsManager(context: Context) {
 
@@ -19,7 +20,7 @@ class SettingsManager(context: Context) {
         private const val KEY_ASSIGNMENT_LEAD_TIME = "assignment_lead_time"
         private const val KEY_EXAM_REMINDERS = "exam_reminders"
         private const val KEY_EXAM_LEAD_TIME = "exam_lead_time"
-        private const val KEY_DARK_MODE = "dark_mode"
+        private const val KEY_THEME_MODE = "theme_mode"
     }
 
     var classReminderMode: String
@@ -49,8 +50,8 @@ class SettingsManager(context: Context) {
     var examLeadTime: Int
         get() = prefs.getInt(KEY_EXAM_LEAD_TIME, 24)
         set(value) = prefs.edit().putInt(KEY_EXAM_LEAD_TIME, value).apply()
-
-    var darkModeEnabled: Boolean
-        get() = prefs.getBoolean(KEY_DARK_MODE, false)
-        set(value) = prefs.edit().putBoolean(KEY_DARK_MODE, value).apply()
+        
+    var themeMode: Int
+        get() = prefs.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        set(value) = prefs.edit().putInt(KEY_THEME_MODE, value).apply()
 }

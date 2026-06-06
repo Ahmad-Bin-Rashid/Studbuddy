@@ -16,7 +16,7 @@ This document outlines the prioritized steps to refactor the architecture and en
 2. **Material 3 Theme:** Update UI components (Cards, Buttons, Inputs) to **Material 3** for a more modern, cohesive look.
 3. **Reactive UI Updates:** Ensure the Dashboard and lists update automatically using observable data flows from Room, eliminating the need for manual `onResume` refreshes.
 
-## Phase 3: Automation & Proactive Alerts
+## Phase 3: Automation & Proactive Alerts (done)
 *Goal: Transform the app from a passive tracker to an active assistant.*
 
 1. **Notification System:** Implement a `NotificationHelper` to handle system-level alerts.
