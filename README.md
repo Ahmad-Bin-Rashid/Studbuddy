@@ -9,12 +9,12 @@ StudBuddy is a comprehensive Android application designed to help students manag
 ## Key Features
 
 - **Dashboard**: Centralized view of current semester status, upcoming lectures, short attendance alerts, pending assignments, next exams, and expected GPA.
-- **Course Management**: Track courses with credit hours, instructor details, and grade calculation.
-- **Weekly Timetable**: Automated weekly schedule generation with reminders for upcoming classes.
-- **Attendance Tracker**: Monitor attendance percentages against thresholds and calculate its impact on course marks.
-- **Assignment & Exam Tracking**: Manage deadlines and grades for all assessments with automatic course mark updates.
+- **Course Management**: Track courses with credit hours and instructor details.
+- **Weekly Timetable**: Weekly schedule management with reminders for upcoming classes.
+- **Attendance Tracker**: Monitor attendance percentages against thresholds.
+- **Assignment & Exam Tracking**: Manage deadlines and grades for all assessments.
 - **GPA Calculator**: Track CGPA and calculate semester GPA based on course grades and credit hours.
-- **Settings**: Personalize the app with dark/light mode and user-defined thresholds.
+- **Settings**: Personalize the app with dark/light mode and notification preferences.
 
 ---
 
@@ -23,63 +23,34 @@ StudBuddy is a comprehensive Android application designed to help students manag
 | Layer | Technology |
 |---|---|
 | Language | Kotlin |
-| UI | XML Layouts (ConstraintLayout + Custom Overlay Sidebar) |
-| Architecture | Activity-based Modular Architecture |
-| Storage | AppDataStore (JSON-based persistence in SharedPrefs) |
-| Navigation | Intent-based Sidebar Navigation (Visibility Toggle) |
-| Min SDK | 24 (Android 7.0) |
-| Target SDK | 34 (Android 14) |
+| Architecture | MVVM with Clean Architecture principles |
+| UI | XML Layouts (Material Design 3) |
+| Persistence | Room Database (SQLite) |
+| Navigation | Navigation Component (Single Activity) |
+| Networking | Firebase (Future Integration for Sync) |
+| Background | WorkManager & AlarmManager |
 
 ---
 
-## Project Modules
-
-| Module | Purpose |
-|---|---|
-| **Home** | Dashboard and Semester initialization |
-| **Courses** | Manage courses for the current semester |
-| **Attendance** | Track lecture attendance and course weightage |
-| **Timetable** | Weekly schedule management and alerts |
-| **Assignments** | Task tracking with grade integration |
-| **Exams** | Quiz, Midterm, and Final exam management |
-| **GPA** | Semester GPA and CGPA calculation |
-| **Settings** | UI themes and app configurations |
-
----
-
-## Repository Structure
+## Project Structure
 
 ```
 StudBuddy/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/studbuddy/
-│   │   │   │   ├── core/                ← Shared logic and data models
-│   │   │   │   ├── home/                ← Dashboard logic
-│   │   │   │   ├── courses/             ← Course management
-│   │   │   │   ├── attendance/          ← Attendance tracking
-│   │   │   │   ├── timetable/           ← Schedule management
-│   │   │   │   ├── assignments/         ← Task management
-│   │   │   │   ├── exams/               ← Assessment management
-│   │   │   │   └── gpa/                 ← Grade calculation
-│   │   │   └── res/
-│   │   │       ├── layout/              ← XML Layouts
-│   │   │       └── values/              ← Resources (colors, strings)
-└── README.md                            ← Project documentation
+└── app/src/main/java/com/example/studbuddy/
+    ├── core/                ← Database, Repository, Models, Notifications
+    ├── home/                ← Dashboard & Semester logic
+    ├── courses/             ← Course management
+    ├── attendance/          ← Attendance tracking
+    ├── timetable/           ← Schedule management
+    ├── assignments/         ← Task management
+    ├── exams/               ← Assessment management
+    ├── gpa/                 ← Grade calculation
+    └── settings/            ← App configurations
 ```
 
 ---
 
-## Documentation Index
+## Documentation
 
-| File | Purpose |
-|---|---|
-| `ARCHITECTURE.md` | System architecture and component wiring |
-| `STORAGE_LAYER.md` | Data persistence and AppDataStore API |
-| `MODULE_TIMETABLE.md` | Timetable module full spec |
-| `MODULE_ASSIGNMENTS.md` | Assignments module full spec |
-| `MODULE_ATTENDANCE.md` | Attendance module full spec |
-| `MODULE_EXAMS.md` | Exams module full spec |
-| `MODULE_GPA.md` | GPA module full spec |
-| `NAVIGATION_FLOW.md` | Sidebar and screen transitions |
+- [Architecture Overview](file:///home/ahmad/Study/Sem 6/MAD/Studbuddy/ARCHITECTURE.md)
+- [Improvement Roadmap](file:///home/ahmad/Study/Sem 6/MAD/Studbuddy/Improvements.md)
