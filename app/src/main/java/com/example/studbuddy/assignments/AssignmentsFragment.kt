@@ -24,7 +24,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class AssignmentsFragment : Fragment() {
 
@@ -220,7 +219,9 @@ class AssignmentsFragment : Fragment() {
 
     private fun scheduleReminder(assignment: Assignment) {
         val course = viewModel.uiState.value.courses.find { it.id == assignment.courseId }
-        NotificationScheduler.scheduleAssignmentReminder(requireContext(), assignment, course?.name ?: "Unknown")
+        viewLifecycleOwner.lifecycleScope.launch {
+            NotificationScheduler.scheduleAssignmentReminder(requireContext(), assignment, course?.name ?: "Unknown")
+        }
     }
 
     private fun cancelReminder(assignment: Assignment) {

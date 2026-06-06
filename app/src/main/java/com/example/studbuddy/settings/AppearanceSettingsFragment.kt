@@ -8,8 +8,11 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class AppearanceSettingsFragment : Fragment() {
 
@@ -33,10 +36,13 @@ class AppearanceSettingsFragment : Fragment() {
         rbDark = view.findViewById(R.id.rbDark)
 
         // Initialize from SettingsManager
-        when (settingsManager.themeMode) {
-            AppCompatDelegate.MODE_NIGHT_NO -> rbLight.isChecked = true
-            AppCompatDelegate.MODE_NIGHT_YES -> rbDark.isChecked = true
-            else -> rbSystem.isChecked = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            val mode = settingsManager.themeMode.first()
+            when (mode) {
+                AppCompatDelegate.MODE_NIGHT_NO -> rbLight.isChecked = true
+                AppCompatDelegate.MODE_NIGHT_YES -> rbDark.isChecked = true
+                else -> rbSystem.isChecked = true
+            }
         }
 
         rgThemeMode.setOnCheckedChangeListener { _, checkedId ->
@@ -45,8 +51,9 @@ class AppearanceSettingsFragment : Fragment() {
                 R.id.rbDark -> AppCompatDelegate.MODE_NIGHT_YES
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
-            settingsManager.themeMode = mode
-            AppCompatDelegate.setDefaultNightMode(mode)
+            viewLifecycleOwner.lifecycleScope.launch {
+                settingsManager.setThemeMode(mode)
+            }
         }
     }
 }

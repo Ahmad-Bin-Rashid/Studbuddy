@@ -12,6 +12,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.StudBuddyApp
 import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.notifications.NotificationScheduler
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -59,40 +60,53 @@ class NotificationSettingsFragment : Fragment() {
         btnExamLeadTime = view.findViewById(R.id.btnExamLeadTime)
 
         // Initialize from SettingsManager
-        if (settingsManager.classReminderMode == SettingsManager.MODE_EACH_LECTURE) {
-            rbEachLecture.isChecked = true
-            layoutEachLecture.visibility = View.VISIBLE
-            layoutDailySummary.visibility = View.GONE
-        } else {
-            rbDailySummary.isChecked = true
-            layoutEachLecture.visibility = View.GONE
-            layoutDailySummary.visibility = View.VISIBLE
+        viewLifecycleOwner.lifecycleScope.launch {
+            val classMode = settingsManager.classReminderMode.first()
+            if (classMode == SettingsManager.MODE_EACH_LECTURE) {
+                rbEachLecture.isChecked = true
+                layoutEachLecture.visibility = View.VISIBLE
+                layoutDailySummary.visibility = View.GONE
+            } else {
+                rbDailySummary.isChecked = true
+                layoutEachLecture.visibility = View.GONE
+                layoutDailySummary.visibility = View.VISIBLE
+            }
+
+            val lectureLead = settingsManager.lectureLeadTime.first()
+            btnLectureLeadTime.text = "$lectureLead minutes"
+
+            val dailyTime = settingsManager.dailySummaryTime.first()
+            btnDailySummaryTime.text = "At $dailyTime"
+            
+            val assignEnabled = settingsManager.assignmentRemindersEnabled.first()
+            cbAssignmentReminders.isChecked = assignEnabled
+            layoutAssignmentLeadTime.visibility = if (assignEnabled) View.VISIBLE else View.GONE
+            val assignLead = settingsManager.assignmentLeadTime.first()
+            btnAssignmentLeadTime.text = formatLeadTime(assignLead)
+            
+            val examEnabled = settingsManager.examRemindersEnabled.first()
+            cbExamReminders.isChecked = examEnabled
+            layoutExamLeadTime.visibility = if (examEnabled) View.VISIBLE else View.GONE
+            val examLead = settingsManager.examLeadTime.first()
+            btnExamLeadTime.text = formatLeadTime(examLead)
         }
-        btnLectureLeadTime.text = "${settingsManager.lectureLeadTime} minutes"
-        btnDailySummaryTime.text = "At ${settingsManager.dailySummaryTime}"
-        
-        cbAssignmentReminders.isChecked = settingsManager.assignmentRemindersEnabled
-        layoutAssignmentLeadTime.visibility = if (settingsManager.assignmentRemindersEnabled) View.VISIBLE else View.GONE
-        btnAssignmentLeadTime.text = formatLeadTime(settingsManager.assignmentLeadTime)
-        
-        cbExamReminders.isChecked = settingsManager.examRemindersEnabled
-        layoutExamLeadTime.visibility = if (settingsManager.examRemindersEnabled) View.VISIBLE else View.GONE
-        btnExamLeadTime.text = formatLeadTime(settingsManager.examLeadTime)
 
         rgClassReminderMode.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                R.id.rbEachLecture -> {
-                    settingsManager.classReminderMode = SettingsManager.MODE_EACH_LECTURE
+            val mode = when (checkedId) {
+                R.id.rbEachLecture -> SettingsManager.MODE_EACH_LECTURE
+                else -> SettingsManager.MODE_DAILY_SUMMARY
+            }
+            
+            viewLifecycleOwner.lifecycleScope.launch {
+                settingsManager.setClassReminderMode(mode)
+                if (mode == SettingsManager.MODE_EACH_LECTURE) {
                     layoutEachLecture.visibility = View.VISIBLE
                     layoutDailySummary.visibility = View.GONE
-                    rescheduleClassReminders()
-                }
-                R.id.rbDailySummary -> {
-                    settingsManager.classReminderMode = SettingsManager.MODE_DAILY_SUMMARY
+                } else {
                     layoutEachLecture.visibility = View.GONE
                     layoutDailySummary.visibility = View.VISIBLE
-                    rescheduleClassReminders()
                 }
+                rescheduleClassReminders()
             }
         }
 
@@ -105,9 +119,11 @@ class NotificationSettingsFragment : Fragment() {
         }
 
         cbAssignmentReminders.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.assignmentRemindersEnabled = isChecked
-            layoutAssignmentLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
-            rescheduleAssignmentReminders()
+            viewLifecycleOwner.lifecycleScope.launch {
+                settingsManager.setAssignmentRemindersEnabled(isChecked)
+                layoutAssignmentLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
+                rescheduleAssignmentReminders()
+            }
         }
 
         btnAssignmentLeadTime.setOnClickListener {
@@ -115,9 +131,11 @@ class NotificationSettingsFragment : Fragment() {
         }
 
         cbExamReminders.setOnCheckedChangeListener { _, isChecked ->
-            settingsManager.examRemindersEnabled = isChecked
-            layoutExamLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
-            rescheduleExamReminders()
+            viewLifecycleOwner.lifecycleScope.launch {
+                settingsManager.setExamRemindersEnabled(isChecked)
+                layoutExamLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
+                rescheduleExamReminders()
+            }
         }
 
         btnExamLeadTime.setOnClickListener {
@@ -137,67 +155,87 @@ class NotificationSettingsFragment : Fragment() {
         val options = arrayOf("5 minutes", "10 minutes", "15 minutes", "30 minutes", "1 hour")
         val values = intArrayOf(5, 10, 15, 30, 60)
         
-        var currentSelection = values.indexOf(settingsManager.lectureLeadTime)
-        if (currentSelection == -1) currentSelection = 2 // Default to 15
+        viewLifecycleOwner.lifecycleScope.launch {
+            val currentLead = settingsManager.lectureLeadTime.first()
+            var currentSelection = values.indexOf(currentLead)
+            if (currentSelection == -1) currentSelection = 2 // Default to 15
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Set Lead Time")
-            .setSingleChoiceItems(options, currentSelection) { dialog, which ->
-                settingsManager.lectureLeadTime = values[which]
-                btnLectureLeadTime.text = options[which]
-                rescheduleClassReminders()
-                dialog.dismiss()
-            }
-            .show()
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Set Lead Time")
+                .setSingleChoiceItems(options, currentSelection) { dialog, which ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        settingsManager.setLectureLeadTime(values[which])
+                        btnLectureLeadTime.text = options[which]
+                        rescheduleClassReminders()
+                    }
+                    dialog.dismiss()
+                }
+                .show()
+        }
     }
 
     private fun showAssignmentLeadTimeDialog(settingsManager: SettingsManager) {
         val options = arrayOf("12 hours", "1 day", "2 days", "3 days", "1 week")
         val values = intArrayOf(12, 24, 48, 72, 168)
         
-        var currentSelection = values.indexOf(settingsManager.assignmentLeadTime)
-        if (currentSelection == -1) currentSelection = 1 // Default to 24
+        viewLifecycleOwner.lifecycleScope.launch {
+            val currentLead = settingsManager.assignmentLeadTime.first()
+            var currentSelection = values.indexOf(currentLead)
+            if (currentSelection == -1) currentSelection = 1 // Default to 24
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Set Lead Time")
-            .setSingleChoiceItems(options, currentSelection) { dialog, which ->
-                settingsManager.assignmentLeadTime = values[which]
-                btnAssignmentLeadTime.text = options[which]
-                rescheduleAssignmentReminders()
-                dialog.dismiss()
-            }
-            .show()
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Set Lead Time")
+                .setSingleChoiceItems(options, currentSelection) { dialog, which ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        settingsManager.setAssignmentLeadTime(values[which])
+                        btnAssignmentLeadTime.text = options[which]
+                        rescheduleAssignmentReminders()
+                    }
+                    dialog.dismiss()
+                }
+                .show()
+        }
     }
 
     private fun showExamLeadTimeDialog(settingsManager: SettingsManager) {
         val options = arrayOf("1 hour", "6 hours", "12 hours", "1 day", "2 days")
         val values = intArrayOf(1, 6, 12, 24, 48)
         
-        var currentSelection = values.indexOf(settingsManager.examLeadTime)
-        if (currentSelection == -1) currentSelection = 3 // Default to 24
+        viewLifecycleOwner.lifecycleScope.launch {
+            val currentLead = settingsManager.examLeadTime.first()
+            var currentSelection = values.indexOf(currentLead)
+            if (currentSelection == -1) currentSelection = 3 // Default to 24
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Set Lead Time")
-            .setSingleChoiceItems(options, currentSelection) { dialog, which ->
-                settingsManager.examLeadTime = values[which]
-                btnExamLeadTime.text = options[which]
-                rescheduleExamReminders()
-                dialog.dismiss()
-            }
-            .show()
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Set Lead Time")
+                .setSingleChoiceItems(options, currentSelection) { dialog, which ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        settingsManager.setExamLeadTime(values[which])
+                        btnExamLeadTime.text = options[which]
+                        rescheduleExamReminders()
+                    }
+                    dialog.dismiss()
+                }
+                .show()
+        }
     }
 
     private fun showSummaryTimeDialog(settingsManager: SettingsManager) {
-        val currentTime = settingsManager.dailySummaryTime.split(":")
-        val h = currentTime[0].toInt()
-        val m = currentTime[1].toInt()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val dailyTime = settingsManager.dailySummaryTime.first()
+            val currentTime = dailyTime.split(":")
+            val h = currentTime[0].toInt()
+            val m = currentTime[1].toInt()
 
-        TimePickerDialog(requireContext(), { _, hour, minute ->
-            val timeStr = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
-            settingsManager.dailySummaryTime = timeStr
-            btnDailySummaryTime.text = "At $timeStr"
-            (requireActivity().application as StudBuddyApp).scheduleDailyMaintenance()
-        }, h, m, true).show()
+            TimePickerDialog(requireContext(), { _, hour, minute ->
+                val timeStr = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+                viewLifecycleOwner.lifecycleScope.launch {
+                    settingsManager.setDailySummaryTime(timeStr)
+                    btnDailySummaryTime.text = "At $timeStr"
+                    (requireActivity().application as StudBuddyApp).scheduleDailyMaintenance()
+                }
+            }, h, m, true).show()
+        }
     }
 
     private fun rescheduleClassReminders() {

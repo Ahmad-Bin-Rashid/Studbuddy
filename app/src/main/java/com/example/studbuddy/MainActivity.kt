@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -20,6 +21,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,7 +65,11 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         val settingsManager = (application as StudBuddyApp).settingsManager
-        AppCompatDelegate.setDefaultNightMode(settingsManager.themeMode)
+        lifecycleScope.launch {
+            settingsManager.themeMode.collect { mode ->
+                AppCompatDelegate.setDefaultNightMode(mode)
+            }
+        }
 
         NotificationHelper.createChannels(this)
         checkNotificationPermission()

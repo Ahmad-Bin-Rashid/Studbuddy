@@ -169,7 +169,9 @@ class TimetableFragment : Fragment() {
 
     private fun scheduleClassReminder(entry: TimetableEntry) {
         val course = viewModel.uiState.value.courses.find { it.id == entry.courseId }
-        NotificationScheduler.scheduleTimetableReminder(requireContext(), entry, course?.name ?: "Unknown")
+        viewLifecycleOwner.lifecycleScope.launch {
+            NotificationScheduler.scheduleTimetableReminder(requireContext(), entry, course?.name ?: "Unknown")
+        }
     }
 
     private fun cancelClassReminder(entryId: String) {

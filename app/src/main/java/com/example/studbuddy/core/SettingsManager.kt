@@ -1,57 +1,75 @@
 package com.example.studbuddy.core
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.SharedPreferencesMigration
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class SettingsManager(context: Context) {
+private const val PREFS_NAME = "studbuddy_settings"
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = PREFS_NAME,
+    produceMigrations = { context ->
+        listOf(SharedPreferencesMigration(context, PREFS_NAME))
+    }
+)
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+class SettingsManager(private val context: Context) {
 
     companion object {
-        private const val PREFS_NAME = "studbuddy_settings"
         const val MODE_EACH_LECTURE = "EACH_LECTURE"
         const val MODE_DAILY_SUMMARY = "DAILY_SUMMARY"
 
-        private const val KEY_CLASS_REMINDER_MODE = "class_reminder_mode"
-        private const val KEY_LECTURE_LEAD_TIME = "lecture_lead_time"
-        private const val KEY_DAILY_SUMMARY_TIME = "daily_summary_time"
-        private const val KEY_ASSIGNMENT_REMINDERS = "assignment_reminders"
-        private const val KEY_ASSIGNMENT_LEAD_TIME = "assignment_lead_time"
-        private const val KEY_EXAM_REMINDERS = "exam_reminders"
-        private const val KEY_EXAM_LEAD_TIME = "exam_lead_time"
-        private const val KEY_THEME_MODE = "theme_mode"
+        private val KEY_CLASS_REMINDER_MODE = stringPreferencesKey("class_reminder_mode")
+        private val KEY_LECTURE_LEAD_TIME = intPreferencesKey("lecture_lead_time")
+        private val KEY_DAILY_SUMMARY_TIME = stringPreferencesKey("daily_summary_time")
+        private val KEY_ASSIGNMENT_REMINDERS = booleanPreferencesKey("assignment_reminders")
+        private val KEY_ASSIGNMENT_LEAD_TIME = intPreferencesKey("assignment_lead_time")
+        private val KEY_EXAM_REMINDERS = booleanPreferencesKey("exam_reminders")
+        private val KEY_EXAM_LEAD_TIME = intPreferencesKey("exam_lead_time")
+        private val KEY_THEME_MODE = intPreferencesKey("theme_mode")
     }
 
-    var classReminderMode: String
-        get() = prefs.getString(KEY_CLASS_REMINDER_MODE, MODE_EACH_LECTURE) ?: MODE_EACH_LECTURE
-        set(value) = prefs.edit().putString(KEY_CLASS_REMINDER_MODE, value).apply()
+    val classReminderMode: Flow<String> = context.dataStore.data.map { it[KEY_CLASS_REMINDER_MODE] ?: MODE_EACH_LECTURE }
+    suspend fun setClassReminderMode(value: String) {
+        context.dataStore.edit { it[KEY_CLASS_REMINDER_MODE] = value }
+    }
 
-    var lectureLeadTime: Int
-        get() = prefs.getInt(KEY_LECTURE_LEAD_TIME, 15)
-        set(value) = prefs.edit().putInt(KEY_LECTURE_LEAD_TIME, value).apply()
+    val lectureLeadTime: Flow<Int> = context.dataStore.data.map { it[KEY_LECTURE_LEAD_TIME] ?: 15 }
+    suspend fun setLectureLeadTime(value: Int) {
+        context.dataStore.edit { it[KEY_LECTURE_LEAD_TIME] = value }
+    }
 
-    var dailySummaryTime: String
-        get() = prefs.getString(KEY_DAILY_SUMMARY_TIME, "08:00") ?: "08:00"
-        set(value) = prefs.edit().putString(KEY_DAILY_SUMMARY_TIME, value).apply()
+    val dailySummaryTime: Flow<String> = context.dataStore.data.map { it[KEY_DAILY_SUMMARY_TIME] ?: "08:00" }
+    suspend fun setDailySummaryTime(value: String) {
+        context.dataStore.edit { it[KEY_DAILY_SUMMARY_TIME] = value }
+    }
 
-    var assignmentRemindersEnabled: Boolean
-        get() = prefs.getBoolean(KEY_ASSIGNMENT_REMINDERS, true)
-        set(value) = prefs.edit().putBoolean(KEY_ASSIGNMENT_REMINDERS, value).apply()
+    val assignmentRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_ASSIGNMENT_REMINDERS] ?: true }
+    suspend fun setAssignmentRemindersEnabled(value: Boolean) {
+        context.dataStore.edit { it[KEY_ASSIGNMENT_REMINDERS] = value }
+    }
 
-    var assignmentLeadTime: Int
-        get() = prefs.getInt(KEY_ASSIGNMENT_LEAD_TIME, 24)
-        set(value) = prefs.edit().putInt(KEY_ASSIGNMENT_LEAD_TIME, value).apply()
+    val assignmentLeadTime: Flow<Int> = context.dataStore.data.map { it[KEY_ASSIGNMENT_LEAD_TIME] ?: 24 }
+    suspend fun setAssignmentLeadTime(value: Int) {
+        context.dataStore.edit { it[KEY_ASSIGNMENT_LEAD_TIME] = value }
+    }
 
-    var examRemindersEnabled: Boolean
-        get() = prefs.getBoolean(KEY_EXAM_REMINDERS, true)
-        set(value) = prefs.edit().putBoolean(KEY_EXAM_REMINDERS, value).apply()
+    val examRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_EXAM_REMINDERS] ?: true }
+    suspend fun setExamRemindersEnabled(value: Boolean) {
+        context.dataStore.edit { it[KEY_EXAM_REMINDERS] = value }
+    }
 
-    var examLeadTime: Int
-        get() = prefs.getInt(KEY_EXAM_LEAD_TIME, 24)
-        set(value) = prefs.edit().putInt(KEY_EXAM_LEAD_TIME, value).apply()
-        
-    var themeMode: Int
-        get() = prefs.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        set(value) = prefs.edit().putInt(KEY_THEME_MODE, value).apply()
+    val examLeadTime: Flow<Int> = context.dataStore.data.map { it[KEY_EXAM_LEAD_TIME] ?: 24 }
+    suspend fun setExamLeadTime(value: Int) {
+        context.dataStore.edit { it[KEY_EXAM_LEAD_TIME] = value }
+    }
+
+    val themeMode: Flow<Int> = context.dataStore.data.map { it[KEY_THEME_MODE] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }
+    suspend fun setThemeMode(value: Int) {
+        context.dataStore.edit { it[KEY_THEME_MODE] = value }
+    }
 }

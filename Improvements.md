@@ -6,7 +6,7 @@ This document outlines the prioritized steps to refactor the architecture and en
 
 ### Step 1: Local Profile & Guest Mode
 *   **User Model**: Create a `User` data class to store `id`, `displayName`, `email`, `profileImageUri`, and `authStatus`.
-*   **UserManager**: Implement a manager to handle the current user's state (stored in SharedPreferences/DataStore).
+*   **UserManager**: Implement a manager to handle the current user's state (stored in DataStore).
 *   **Sidebar Integration**: Add a "Profile" entry in `nav_menu.xml` and update `nav_header.xml` to show user info.
 *   **Profile UI**: Create `ProfileFragment` where users can:
     *   Set a guest username.

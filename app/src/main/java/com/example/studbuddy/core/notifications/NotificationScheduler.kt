@@ -10,35 +10,40 @@ import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.models.Assignment
 import com.example.studbuddy.core.models.Exam
 import com.example.studbuddy.core.models.TimetableEntry
+import kotlinx.coroutines.flow.first
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 object NotificationScheduler {
 
-    fun scheduleAssignmentReminder(context: Context, assignment: Assignment, courseName: String) {
+    suspend fun scheduleAssignmentReminder(context: Context, assignment: Assignment, courseName: String) {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
-        if (!settingsManager.assignmentRemindersEnabled) return
+        val enabled = settingsManager.assignmentRemindersEnabled.first()
+        if (!enabled) return
 
-        val triggerTime = assignment.dueDate - TimeUnit.HOURS.toMillis(settingsManager.assignmentLeadTime.toLong())
+        val leadTime = settingsManager.assignmentLeadTime.first()
+        val triggerTime = assignment.dueDate - TimeUnit.HOURS.toMillis(leadTime.toLong())
         if (triggerTime <= System.currentTimeMillis()) return
 
         val intent = createBaseIntent(context, NotificationType.ASSIGNMENT_DUE, assignment.id).apply {
             putExtra(AlarmReceiver.EXTRA_TITLE, "Assignment Due Soon")
-            putExtra(AlarmReceiver.EXTRA_BODY, "${assignment.name} ($courseName) is due in 24 hours.")
+            putExtra(AlarmReceiver.EXTRA_BODY, "${assignment.name} ($courseName) is due in $leadTime hours.")
         }
 
         setAlarm(context, triggerTime, intent, getRequestCode(NotificationType.ASSIGNMENT_DUE, assignment.id))
     }
 
-    fun scheduleExamReminders(context: Context, exam: Exam, courseName: String) {
+    suspend fun scheduleExamReminders(context: Context, exam: Exam, courseName: String) {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
-        if (!settingsManager.examRemindersEnabled) return
+        val enabled = settingsManager.examRemindersEnabled.first()
+        if (!enabled) return
 
+        val leadTime = settingsManager.examLeadTime.first()
         // User lead time
-        scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(settingsManager.examLeadTime.toLong()), "${settingsManager.examLeadTime}h")
+        scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(leadTime.toLong()), "${leadTime}h")
         
         // 1h before as a fail-safe (unless user lead time is already <= 1h)
-        if (settingsManager.examLeadTime > 1) {
+        if (leadTime > 1) {
             scheduleExamAlarm(context, exam, courseName, TimeUnit.HOURS.toMillis(1), "1h")
         }
     }
@@ -57,12 +62,14 @@ object NotificationScheduler {
         setAlarm(context, triggerTime, intent, getRequestCode(NotificationType.EXAM_REMINDER, "${exam.id}_$suffix"))
     }
 
-    fun scheduleTimetableReminder(context: Context, entry: TimetableEntry, courseName: String) {
+    suspend fun scheduleTimetableReminder(context: Context, entry: TimetableEntry, courseName: String) {
         val settingsManager = (context.applicationContext as StudBuddyApp).settingsManager
-        if (settingsManager.classReminderMode != SettingsManager.MODE_EACH_LECTURE) return
+        val mode = settingsManager.classReminderMode.first()
+        if (mode != SettingsManager.MODE_EACH_LECTURE) return
 
         val nextClassTime = getNextClassTime(entry.dayOfWeek, entry.startTime) ?: return
-        val triggerTime = nextClassTime - TimeUnit.MINUTES.toMillis(settingsManager.lectureLeadTime.toLong())
+        val leadTime = settingsManager.lectureLeadTime.first()
+        val triggerTime = nextClassTime - TimeUnit.MINUTES.toMillis(leadTime.toLong())
         
         // If lead time before class is already passed for TODAY, getNextClassTime will already return next week.
         // But double check
@@ -70,7 +77,6 @@ object NotificationScheduler {
 
         val intent = createBaseIntent(context, NotificationType.TIMETABLE_CLASS, entry.id).apply {
             putExtra(AlarmReceiver.EXTRA_TITLE, "Class Reminder")
-            val leadTime = settingsManager.lectureLeadTime
             val timeUnit = if (leadTime >= 60) "hour" else "minutes"
             val displayTime = if (leadTime >= 60) leadTime / 60 else leadTime
             putExtra(AlarmReceiver.EXTRA_BODY, "$courseName starts in $displayTime $timeUnit in room ${entry.room}.")
@@ -114,12 +120,13 @@ object NotificationScheduler {
 
         val timetable = repository.getTimetable()
         val courses = repository.getCourses().associateBy { it.id }
+        val mode = settingsManager.classReminderMode.first()
 
         timetable.forEach { entry ->
             // Always cancel first to avoid duplicates or orphaned alarms
             cancelReminder(context, NotificationType.TIMETABLE_CLASS, entry.id)
             
-            if (settingsManager.classReminderMode == SettingsManager.MODE_EACH_LECTURE) {
+            if (mode == SettingsManager.MODE_EACH_LECTURE) {
                 scheduleTimetableReminder(context, entry, courses[entry.courseId]?.name ?: "Unknown")
             }
         }
@@ -132,10 +139,11 @@ object NotificationScheduler {
 
         val assignments = repository.getAssignments()
         val courses = repository.getCourses().associateBy { it.id }
+        val enabled = settingsManager.assignmentRemindersEnabled.first()
 
         assignments.forEach { assignment ->
             cancelReminder(context, NotificationType.ASSIGNMENT_DUE, assignment.id)
-            if (settingsManager.assignmentRemindersEnabled && !assignment.isCompleted) {
+            if (enabled && !assignment.isCompleted) {
                 scheduleAssignmentReminder(context, assignment, courses[assignment.courseId]?.name ?: "Unknown")
             }
         }
@@ -148,15 +156,17 @@ object NotificationScheduler {
 
         val exams = repository.getExams()
         val courses = repository.getCourses().associateBy { it.id }
+        val enabled = settingsManager.examRemindersEnabled.first()
+        val leadTime = settingsManager.examLeadTime.first()
 
         exams.forEach { exam ->
             // Cancel all potential suffixes
             cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_24h")
             cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_1h")
             // Also cancel using current setting to be safe
-            cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_${settingsManager.examLeadTime}h")
+            cancelReminder(context, NotificationType.EXAM_REMINDER, "${exam.id}_${leadTime}h")
             
-            if (settingsManager.examRemindersEnabled && !exam.isCompleted) {
+            if (enabled && !exam.isCompleted) {
                 scheduleExamReminders(context, exam, courses[exam.courseId]?.name ?: "Unknown")
             }
         }

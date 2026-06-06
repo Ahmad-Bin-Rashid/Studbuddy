@@ -8,6 +8,7 @@ import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationScheduler
 import com.example.studbuddy.core.notifications.NotificationType
+import kotlinx.coroutines.flow.first
 import java.util.*
 
 class DailyMaintenanceWorker(
@@ -21,7 +22,8 @@ class DailyMaintenanceWorker(
         val settingsManager = app.settingsManager
 
         // 1. Morning Briefing (Summary of today's lectures)
-        if (settingsManager.classReminderMode == SettingsManager.MODE_DAILY_SUMMARY) {
+        val reminderMode = settingsManager.classReminderMode.first()
+        if (reminderMode == SettingsManager.MODE_DAILY_SUMMARY) {
             val calendar = Calendar.getInstance()
             val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
             val ourDayIndex = if (dayOfWeek == Calendar.SUNDAY) 7 else dayOfWeek - 1
