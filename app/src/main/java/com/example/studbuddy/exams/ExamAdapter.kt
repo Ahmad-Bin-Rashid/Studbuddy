@@ -18,8 +18,7 @@ import java.util.concurrent.TimeUnit
 
 class ExamAdapter(
     private val exams: MutableList<Exam>,
-    private val onItemClicked: (Exam) -> Unit,
-    private val onDeleteClicked: (Exam) -> Unit
+    private val onItemClicked: (Exam) -> Unit
 ) : RecyclerView.Adapter<ExamAdapter.ExamViewHolder>() {
 
     private var courseList: List<Course> = emptyList()
@@ -32,7 +31,6 @@ class ExamAdapter(
         val tvMarks: TextView = view.findViewById(R.id.tvMarks)
         val tvWeightage: TextView = view.findViewById(R.id.tvWeightage)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
-        val btnMenu: ImageButton = view.findViewById(R.id.btnExamMenu)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExamViewHolder {
@@ -76,26 +74,6 @@ class ExamAdapter(
             }
         } else {
             holder.tvExamDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorTextSecondary))
-        }
-
-        holder.btnMenu.setOnClickListener { v ->
-            val popup = PopupMenu(v.context, v)
-            popup.menu.add(0, 1, 0, "Edit")
-            popup.menu.add(0, 2, 0, "Delete")
-            popup.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    1 -> {
-                        onItemClicked(exam)
-                        true
-                    }
-                    2 -> {
-                        onDeleteClicked(exam)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            popup.show()
         }
 
         holder.itemView.setOnClickListener { onItemClicked(exam) }

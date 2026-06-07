@@ -39,6 +39,8 @@ class ExamsFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var layoutEmpty: View
     private lateinit var scrollView: View
+    private lateinit var tvPendingHeader: View
+    private lateinit var tvCompletedHeader: View
     
     private val pendingList = mutableListOf<Exam>()
     private val completedList = mutableListOf<Exam>()
@@ -106,18 +108,16 @@ class ExamsFragment : Fragment() {
     private fun setupRecyclerViews(view: View) {
         rvPending = view.findViewById(R.id.rvPendingExams)
         rvCompleted = view.findViewById(R.id.rvCompletedExams)
+        tvPendingHeader = view.findViewById(R.id.tvPendingHeader)
+        tvCompletedHeader = view.findViewById(R.id.tvCompletedHeader)
 
-        pendingAdapter = ExamAdapter(pendingList, { exam ->
+        pendingAdapter = ExamAdapter(pendingList) { exam ->
             showExamDialog(exam)
-        }, { exam ->
-            confirmDelete(exam)
-        })
+        }
 
-        completedAdapter = ExamAdapter(completedList, { exam ->
+        completedAdapter = ExamAdapter(completedList) { exam ->
             showExamDialog(exam)
-        }, { exam ->
-            confirmDelete(exam)
-        })
+        }
 
         rvPending.layoutManager = LinearLayoutManager(requireContext())
         rvPending.adapter = pendingAdapter
@@ -135,6 +135,12 @@ class ExamsFragment : Fragment() {
                     if (!state.isLoading) {
                         val filteredExams = if (courseId != null) {
                             state.exams.filter { it.courseId == courseId }
+                        } else if (state.activeSemester != null) {
+                            val activeCourseIds = state.courses
+                                .filter { it.semesterId == state.activeSemester.id }
+                                .map { it.id }
+                                .toSet()
+                            state.exams.filter { it.courseId in activeCourseIds }
                         } else {
                             state.exams
                         }
@@ -164,9 +170,27 @@ class ExamsFragment : Fragment() {
     }
 
     private fun updateAdapters(allExams: List<Exam>, allCourses: List<Course>) {
-        val pending = allExams.filter { !it.isCompleted }.sortedBy { it.date }
-        val completed = allExams.filter { it.isCompleted }.sortedByDescending { it.date }
+        val now = System.currentTimeMillis()
+        val pending = mutableListOf<Exam>()
+        val completed = mutableListOf<Exam>()
+
+        allExams.forEach { exam ->
+            if (!exam.isCompleted && exam.date < now) {
+                // Auto-complete past exams
+                viewModel.updateExam(exam.copy(isCompleted = true))
+            } else if (exam.isCompleted) {
+                completed.add(exam)
+            } else {
+                pending.add(exam)
+            }
+        }
+
+        pending.sortBy { it.date }
+        completed.sortByDescending { it.date }
         
+        tvPendingHeader.visibility = if (pending.isEmpty()) View.GONE else View.VISIBLE
+        tvCompletedHeader.visibility = if (completed.isEmpty()) View.GONE else View.VISIBLE
+
         pendingAdapter.updateData(pending, allCourses)
         completedAdapter.updateData(completed, allCourses)
     }

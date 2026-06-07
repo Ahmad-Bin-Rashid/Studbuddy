@@ -34,14 +34,6 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <ImageButton
-                android:id="@+id/btnExamMenu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:srcCompat="@drawable/ic_more_vert_24"
-                app:tint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
         <LinearLayout

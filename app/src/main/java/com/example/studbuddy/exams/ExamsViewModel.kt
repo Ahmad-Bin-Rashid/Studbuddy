@@ -3,6 +3,7 @@ package com.example.studbuddy.exams
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Exam
+import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -12,6 +13,7 @@ import javax.inject.Inject
 data class ExamsUiState(
     val exams: List<Exam> = emptyList(),
     val courses: List<Course> = emptyList(),
+    val activeSemester: Semester? = null,
     val isLoading: Boolean = false
 )
 
@@ -23,11 +25,12 @@ class ExamsViewModel @Inject constructor(private val repository: StudBuddyReposi
     val uiState: StateFlow<ExamsUiState> = combine(
         repository.getExamsFlow(),
         repository.getCoursesFlow(),
+        repository.getActiveSemesterFlow(),
         _isLoading
-    ) { exams, courses, loading ->
-        ExamsUiState(exams, courses, loading)
+    ) { exams, courses, activeSemester, loading ->
+        ExamsUiState(exams, courses, activeSemester, loading)
     }.onEach {
-        if (it.exams.isNotEmpty() || it.courses.isNotEmpty()) {
+        if (it.exams.isNotEmpty() || it.courses.isNotEmpty() || it.activeSemester != null) {
             _isLoading.value = false
         }
     }.stateIn(
