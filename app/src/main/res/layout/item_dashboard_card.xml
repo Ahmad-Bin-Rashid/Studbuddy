@@ -5,28 +5,36 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     style="?attr/materialCardViewElevatedStyle"
-    app:cardCornerRadius="12dp">
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutlineVariant">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="18dp">
+
+        <View
+            android:layout_width="48dp"
+            android:layout_height="4dp"
+            android:background="?attr/colorPrimary" />
 
         <TextView
             android:id="@+id/tvCardTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/colorPrimary"
             android:textAllCaps="true" />
 
         <TextView
             android:id="@+id/tvCardMainText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginTop="6dp"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
@@ -34,7 +42,7 @@
             android:id="@+id/tvCardSubText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="6dp"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
 

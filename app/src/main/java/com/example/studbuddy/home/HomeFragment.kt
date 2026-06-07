@@ -6,12 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.card.MaterialCardView
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Semester
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -25,7 +25,12 @@ import java.util.*
 class HomeFragment : Fragment() {
 
     private lateinit var btnSetupSemester: Button
-    private lateinit var cardSetupSemester: CardView
+    private lateinit var cardSetupSemester: MaterialCardView
+    private lateinit var cardHero: MaterialCardView
+    private lateinit var tvHeroEyebrow: TextView
+    private lateinit var tvHeroTitle: TextView
+    private lateinit var tvHeroSubtitle: TextView
+    private lateinit var tvHeroBadge: TextView
     private lateinit var dashboardItemsContainer: LinearLayout
 
     private val viewModel: MainViewModel by viewModels()
@@ -45,6 +50,11 @@ class HomeFragment : Fragment() {
 
         btnSetupSemester = view.findViewById(R.id.btnSetupSemester)
         cardSetupSemester = view.findViewById(R.id.cardSetupSemester)
+        cardHero = view.findViewById(R.id.cardHero)
+        tvHeroEyebrow = view.findViewById(R.id.tvHeroEyebrow)
+        tvHeroTitle = view.findViewById(R.id.tvHeroTitle)
+        tvHeroSubtitle = view.findViewById(R.id.tvHeroSubtitle)
+        tvHeroBadge = view.findViewById(R.id.tvHeroBadge)
         dashboardItemsContainer = view.findViewById(R.id.dashboardItemsContainer)
 
         btnSetupSemester.setOnClickListener { showSemesterDialog() }
@@ -66,9 +76,11 @@ class HomeFragment : Fragment() {
         val semester = state.semester
         if (semester != null) {
             cardSetupSemester.visibility = View.GONE
+            cardHero.visibility = View.VISIBLE
             updateDashboard(state)
         } else {
             cardSetupSemester.visibility = View.VISIBLE
+            cardHero.visibility = View.GONE
             dashboardItemsContainer.removeAllViews()
         }
     }
@@ -81,6 +93,22 @@ class HomeFragment : Fragment() {
         val attendance = state.attendance
         val assignments = state.assignments
         val exams = state.exams
+        val pendingAssignments = assignments.filter { !it.isCompleted }.sortedBy { it.dueDate }
+        val upcomingExams = exams.filter { !it.isCompleted && it.date > System.currentTimeMillis() }
+        val attendanceAlerts = getAttendanceAlerts(courses, attendance)
+
+        tvHeroEyebrow.text = if (semester.isActive) "Active semester" else "Semester overview"
+        tvHeroTitle.text = semester.name
+        tvHeroSubtitle.text = buildString {
+            append(formatDateRange(semester.startDate, semester.endDate))
+            append("\n")
+            append(courses.size)
+            append(" courses")
+            append(" • ")
+            append(pendingAssignments.size)
+            append(" pending tasks")
+        }
+        tvHeroBadge.text = if (semester.isActive) "ACTIVE" else "INACTIVE"
 
         // 1. Next Lecture Card
         val now = Calendar.getInstance()
@@ -112,28 +140,16 @@ class HomeFragment : Fragment() {
         }
 
         // 2. Short Attendance Card
-        val shortAttendanceDetails = mutableListOf<String>()
         val threshold = 75.0
-        courses.forEach { course ->
-            val records = attendance.filter { it.courseId == course.id }
-            val percentage = if (records.isNotEmpty()) (records.count { it.status == "PRESENT" }.toDouble() / records.size) * 100 else 100.0
-            if (percentage < threshold) {
-                shortAttendanceDetails.add("${course.name} (${String.format(Locale.getDefault(), "%.1f%%", percentage)})")
-            }
-        }
-        if (shortAttendanceDetails.isNotEmpty()) {
+        if (attendanceAlerts.isNotEmpty()) {
             addDashboardCard(
-                "Attendance Alert", 
-                "Short attendance in: ${shortAttendanceDetails.joinToString(", ")}", 
+                "Attendance Alert",
+                "Short attendance in: ${attendanceAlerts.joinToString(", ")}",
                 "Required Threshold: ${String.format(Locale.getDefault(), "%.0f%%", threshold)}"
             )
         }
 
         // 3. Pending Assignment Card
-        val pendingAssignments = assignments
-            .filter { !it.isCompleted }
-            .sortedBy { it.dueDate }
-        
         if (pendingAssignments.isNotEmpty()) {
             val topAssignment = pendingAssignments.first()
             val course = courses.find { it.id == topAssignment.courseId }
@@ -178,6 +194,31 @@ class HomeFragment : Fragment() {
         cardView.findViewById<TextView>(R.id.tvCardMainText).text = main
         cardView.findViewById<TextView>(R.id.tvCardSubText).text = sub
         dashboardItemsContainer.addView(cardView)
+    }
+
+    private fun getAttendanceAlerts(
+        courses: List<com.example.studbuddy.core.models.Course>,
+        attendance: List<com.example.studbuddy.core.models.AttendanceRecord>
+    ): List<String> {
+        val threshold = 75.0
+        val alerts = mutableListOf<String>()
+        courses.forEach { course ->
+            val records = attendance.filter { it.courseId == course.id }
+            val percentage = if (records.isNotEmpty()) {
+                (records.count { it.status == "PRESENT" }.toDouble() / records.size) * 100
+            } else {
+                100.0
+            }
+            if (percentage < threshold) {
+                alerts.add("${course.name} (${String.format(Locale.getDefault(), "%.1f%%", percentage)})")
+            }
+        }
+        return alerts
+    }
+
+    private fun formatDateRange(startDate: Long, endDate: Long): String {
+        val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        return "${sdf.format(Date(startDate))} - ${sdf.format(Date(endDate))}"
     }
 
     private fun showSemesterDialog(existingSemester: Semester? = null) {

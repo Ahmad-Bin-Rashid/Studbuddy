@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
+    android:layout_margin="6dp"
     style="?attr/materialCardViewFilledStyle"
     app:cardBackgroundColor="?attr/colorSurfaceVariant"
-    app:cardCornerRadius="12dp">
+    app:cardCornerRadius="18dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,19 +15,38 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="?attr/colorPrimary" />
+
         <TextView
+            android:id="@+id/tvInfoLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Semester Duration"
-            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:layout_marginTop="12dp"
+            android:text="Label"
+            android:textAllCaps="true"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorPrimary"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvSemesterRange"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvInfoValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="0"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvInfoCaption"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:text="Caption"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
