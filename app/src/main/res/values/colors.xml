@@ -80,6 +80,7 @@
     <color name="colorStatusWarning">#F9AB00</color>
     <color name="colorStatusCritical">#D93025</color>
     <color name="colorStatusOverdue">#A50E0E</color>
+    <color name="sync_success">#1E8E3E</color>
 
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>

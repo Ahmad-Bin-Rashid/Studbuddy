@@ -10,8 +10,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.AuthStatus
+import com.example.studbuddy.core.workers.SyncWorker
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
@@ -155,6 +160,15 @@ class ProfileFragment : Fragment() {
                             authStatus = AuthStatus.SIGNED_IN
                         )
                     )
+                    // Trigger an immediate sync now that the user is signed in
+                    val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                        .setConstraints(
+                            Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build()
+                        )
+                        .build()
+                    WorkManager.getInstance(requireContext()).enqueue(syncRequest)
                     Toast.makeText(context, "Welcome ${firebaseUser.displayName}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {

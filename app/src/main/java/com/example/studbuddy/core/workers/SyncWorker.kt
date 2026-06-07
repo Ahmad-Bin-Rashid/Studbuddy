@@ -20,6 +20,7 @@ class SyncWorker @AssistedInject constructor(
             syncRepository.syncAll()
             Result.success()
         } catch (e: Exception) {
+            android.util.Log.e("SyncWorker", "Sync failed on attempt $runAttemptCount", e)
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
     }

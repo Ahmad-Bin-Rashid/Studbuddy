@@ -89,6 +89,9 @@
         <action
             android:id="@+id/action_settingsFragment_to_appearanceSettingsFragment"
             app:destination="@id/appearanceSettingsFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_cloudSyncFragment"
+            app:destination="@id/cloudSyncFragment" />
     </fragment>
 
     <fragment
@@ -102,5 +105,11 @@
         android:name="com.example.studbuddy.settings.AppearanceSettingsFragment"
         android:label="Appearance"
         tools:layout="@layout/fragment_appearance_settings" />
+
+    <fragment
+        android:id="@+id/cloudSyncFragment"
+        android:name="com.example.studbuddy.settings.CloudSyncFragment"
+        android:label="Cloud Sync"
+        tools:layout="@layout/fragment_cloud_sync" />
 
 </navigation>

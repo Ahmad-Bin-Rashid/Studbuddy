@@ -31,6 +31,7 @@ class SettingsManager(private val context: Context) {
         private val KEY_EXAM_REMINDERS = booleanPreferencesKey("exam_reminders")
         private val KEY_EXAM_LEAD_TIME = intPreferencesKey("exam_lead_time")
         private val KEY_THEME_MODE = intPreferencesKey("theme_mode")
+        val KEY_LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
     }
 
     val classReminderMode: Flow<String> = context.dataStore.data.map { it[KEY_CLASS_REMINDER_MODE] ?: MODE_EACH_LECTURE }
@@ -71,5 +72,10 @@ class SettingsManager(private val context: Context) {
     val themeMode: Flow<Int> = context.dataStore.data.map { it[KEY_THEME_MODE] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }
     suspend fun setThemeMode(value: Int) {
         context.dataStore.edit { it[KEY_THEME_MODE] = value }
+    }
+
+    val lastSyncTime: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_TIME] ?: 0L }
+    suspend fun setLastSyncTime(time: Long) {
+        context.dataStore.edit { it[KEY_LAST_SYNC_TIME] = time }
     }
 }

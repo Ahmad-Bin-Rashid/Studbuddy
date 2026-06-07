@@ -25,8 +25,8 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideSyncRepository(database: StudBuddyDatabase): SyncRepository {
-        return SyncRepository(database)
+    fun provideSyncRepository(database: StudBuddyDatabase, settingsManager: SettingsManager): SyncRepository {
+        return SyncRepository(database, settingsManager)
     }
 
     @Provides

@@ -15,6 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class SettingsFragment : Fragment() {
 
     private lateinit var cardProfile: MaterialCardView
+    private lateinit var cardCloudSync: MaterialCardView
     private lateinit var cardNotifications: MaterialCardView
     private lateinit var cardAppearance: MaterialCardView
 
@@ -31,13 +32,19 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        cardProfile = view.findViewById(R.id.cardProfile)
+        cardProfile       = view.findViewById(R.id.cardProfile)
+        cardCloudSync     = view.findViewById(R.id.cardCloudSync)
         cardNotifications = view.findViewById(R.id.cardNotifications)
-        cardAppearance = view.findViewById(R.id.cardAppearance)
+        cardAppearance    = view.findViewById(R.id.cardAppearance)
 
         // Navigate to Profile page
         cardProfile.setOnClickListener {
             findNavController().navigate(R.id.profileFragment)
+        }
+
+        // Navigate to Cloud Sync page
+        cardCloudSync.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_cloudSyncFragment)
         }
 
         // Navigate to Notifications Sub-page
