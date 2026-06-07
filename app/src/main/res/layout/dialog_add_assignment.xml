@@ -99,12 +99,28 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnDueDate"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        style="@style/Widget.Material3.Button.TonalButton"
-        android:text="Select Due Date" />
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDueDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:text="@string/select_date" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDueTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:text="@string/select_time" />
+    </LinearLayout>
 
 </LinearLayout>

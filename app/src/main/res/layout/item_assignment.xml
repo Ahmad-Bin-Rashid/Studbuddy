@@ -32,14 +32,6 @@
                 android:id="@+id/cbCompleted"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-
-            <ImageButton
-                android:id="@+id/btnAssignmentMenu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:srcCompat="@drawable/ic_more_vert_24"
-                app:tint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
         <LinearLayout

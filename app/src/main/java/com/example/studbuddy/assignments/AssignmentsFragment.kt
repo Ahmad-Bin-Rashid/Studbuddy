@@ -36,6 +36,8 @@ class AssignmentsFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var layoutEmpty: View
     private lateinit var scrollView: View
+    private lateinit var tvPendingHeader: View
+    private lateinit var tvCompletedHeader: View
     
     private val pendingList = mutableListOf<Assignment>()
     private val completedList = mutableListOf<Assignment>()
@@ -103,21 +105,19 @@ class AssignmentsFragment : Fragment() {
     private fun setupRecyclerViews(view: View) {
         rvPending = view.findViewById(R.id.rvPending)
         rvCompleted = view.findViewById(R.id.rvCompleted)
+        tvPendingHeader = view.findViewById(R.id.tvPendingHeader)
+        tvCompletedHeader = view.findViewById(R.id.tvCompletedHeader)
 
         pendingAdapter = AssignmentsAdapter(pendingList, { assignment, isChecked ->
             updateAssignmentStatus(assignment, isChecked)
         }, { assignment ->
             showAssignmentDialog(assignment)
-        }, { assignment ->
-            confirmDelete(assignment)
         })
 
         completedAdapter = AssignmentsAdapter(completedList, { assignment, isChecked ->
             updateAssignmentStatus(assignment, isChecked)
         }, { assignment ->
             showAssignmentDialog(assignment)
-        }, { assignment ->
-            confirmDelete(assignment)
         })
 
         rvPending.layoutManager = LinearLayoutManager(requireContext())
@@ -136,6 +136,12 @@ class AssignmentsFragment : Fragment() {
                     if (!state.isLoading) {
                         val filteredAssignments = if (courseId != null) {
                             state.assignments.filter { it.courseId == courseId }
+                        } else if (state.activeSemester != null) {
+                            val activeCourseIds = state.courses
+                                .filter { it.semesterId == state.activeSemester.id }
+                                .map { it.id }
+                                .toSet()
+                            state.assignments.filter { it.courseId in activeCourseIds }
                         } else {
                             state.assignments
                         }
@@ -168,6 +174,9 @@ class AssignmentsFragment : Fragment() {
         val pending = allAssignments.filter { !it.isCompleted }.sortedBy { it.dueDate }
         val completed = allAssignments.filter { it.isCompleted }.sortedByDescending { it.dueDate }
         
+        tvPendingHeader.visibility = if (pending.isEmpty()) View.GONE else View.VISIBLE
+        tvCompletedHeader.visibility = if (completed.isEmpty()) View.GONE else View.VISIBLE
+
         pendingAdapter.updateData(pending, allCourses)
         completedAdapter.updateData(completed, allCourses)
     }
@@ -190,6 +199,7 @@ class AssignmentsFragment : Fragment() {
         val etTotal = dialogView.findViewById<EditText>(R.id.etTotalMarks)
         val etWeight = dialogView.findViewById<EditText>(R.id.etWeightage)
         val btnDate = dialogView.findViewById<Button>(R.id.btnDueDate)
+        val btnTime = dialogView.findViewById<Button>(R.id.btnDueTime)
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
@@ -197,14 +207,19 @@ class AssignmentsFragment : Fragment() {
         val courseNames = courses.map { it.name }
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courseNames)
 
-        var selectedDate = existing?.dueDate ?: System.currentTimeMillis()
-        val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val selectedCalendar = Calendar.getInstance().apply {
+            timeInMillis = existing?.dueDate ?: System.currentTimeMillis()
+        }
+        val dateSdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val timeSdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
         
+        btnDate.text = dateSdf.format(selectedCalendar.time)
+        btnTime.text = timeSdf.format(selectedCalendar.time)
+
         if (existing != null) {
             etName.setText(existing.name)
             etTotal.setText(existing.totalMarks.toString())
             etWeight.setText(existing.weightage.toString())
-            btnDate.text = sdf.format(Date(existing.dueDate))
             val courseIdx = courses.indexOfFirst { it.id == existing.courseId }
             if (courseIdx != -1) {
                 spinnerCourses.setSelection(courseIdx)
@@ -219,20 +234,26 @@ class AssignmentsFragment : Fragment() {
             val courseIdx = courses.indexOfFirst { it.id == preselectedCourse.id }
             if (courseIdx != -1) {
                 spinnerCourses.setSelection(courseIdx)
-                // Optionally disable if we want to enforce context
-                // spinnerCourses.isEnabled = false
             }
         }
 
         btnDate.setOnClickListener {
-            val cal = Calendar.getInstance()
-            cal.timeInMillis = selectedDate
             DatePickerDialog(requireContext(), { _, y, m, d ->
-                val selected = Calendar.getInstance()
-                selected.set(y, m, d)
-                selectedDate = selected.timeInMillis
-                btnDate.text = sdf.format(selected.time)
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+                selectedCalendar.set(Calendar.YEAR, y)
+                selectedCalendar.set(Calendar.MONTH, m)
+                selectedCalendar.set(Calendar.DAY_OF_MONTH, d)
+                btnDate.text = dateSdf.format(selectedCalendar.time)
+            }, selectedCalendar.get(Calendar.YEAR), selectedCalendar.get(Calendar.MONTH), selectedCalendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        btnTime.setOnClickListener {
+            android.app.TimePickerDialog(requireContext(), { _, h, min ->
+                selectedCalendar.set(Calendar.HOUR_OF_DAY, h)
+                selectedCalendar.set(Calendar.MINUTE, min)
+                selectedCalendar.set(Calendar.SECOND, 0)
+                selectedCalendar.set(Calendar.MILLISECOND, 0)
+                btnTime.text = timeSdf.format(selectedCalendar.time)
+            }, selectedCalendar.get(Calendar.HOUR_OF_DAY), selectedCalendar.get(Calendar.MINUTE), false).show()
         }
 
         val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
@@ -266,7 +287,7 @@ class AssignmentsFragment : Fragment() {
                     id = existing?.id ?: UUID.randomUUID().toString(),
                     name = name,
                     courseId = courseId,
-                    dueDate = selectedDate,
+                    dueDate = selectedCalendar.timeInMillis,
                     totalMarks = total,
                     obtainedMarks = obtained,
                     weightage = weight,

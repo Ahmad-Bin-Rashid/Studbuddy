@@ -34,5 +34,9 @@
     <string name="empty_generic_title">No Items Found</string>
     <string name="empty_generic_desc">Tap the button below to add your first item and get started!</string>
     <string name="empty_state_content_description">Empty state illustration</string>
+    <string name="select_date">Select Date</string>
+    <string name="select_time">Select Time</string>
+    <string name="header_pending">Pending</string>
+    <string name="header_completed">Completed</string>
     <string name="default_web_client_id">1080257802996-luctnrsfamsodrgst85gtengb4mk1hgb.apps.googleusercontent.com</string>
 </resources>
