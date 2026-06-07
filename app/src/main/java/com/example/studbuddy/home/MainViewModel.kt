@@ -21,7 +21,7 @@ data class DashboardUiState(
 class MainViewModel @Inject constructor(private val repository: StudBuddyRepository) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = combine(
-        repository.getSemesterFlow(),
+        repository.getActiveSemesterFlow(),
         repository.getCoursesFlow(),
         repository.getTimetableFlow(),
         repository.getAttendanceFlow(),

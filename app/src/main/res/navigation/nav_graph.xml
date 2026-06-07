@@ -12,10 +12,22 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
+        android:id="@+id/semesterFragment"
+        android:name="com.example.studbuddy.semesters.SemesterFragment"
+        android:label="@string/nav_semesters"
+        tools:layout="@layout/fragment_semester" />
+
+    <fragment
         android:id="@+id/coursesFragment"
         android:name="com.example.studbuddy.courses.CoursesFragment"
         android:label="@string/nav_courses"
-        tools:layout="@layout/fragment_courses" />
+        tools:layout="@layout/fragment_courses">
+        <argument
+            android:name="semesterId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/attendanceFragment"

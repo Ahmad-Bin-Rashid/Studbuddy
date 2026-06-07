@@ -13,5 +13,6 @@ data class Semester(
     val endDate: Long,
     val isActive: Boolean = true,
     val gpa: Double = 0.0,
+    val createdAt: Long = System.currentTimeMillis(),
     val lastModified: Long = System.currentTimeMillis()
 )

@@ -16,7 +16,7 @@ class SyncRepository(private val db: StudBuddyDatabase) {
     suspend fun syncAll() {
         val userId = auth.currentUser?.uid ?: return
         
-        syncTable("semesters", { db.semesterDao().getSemester()?.let { listOf(it) } ?: emptyList() }, db.semesterDao()::insert, userId)
+        syncTable("semesters", db.semesterDao()::getAll, db.semesterDao()::insert, userId)
         syncTable("courses", db.courseDao()::getAll, db.courseDao()::insert, userId)
         syncTable("timetable", db.timetableDao()::getAll, db.timetableDao()::insert, userId)
         syncTable("attendance", db.attendanceDao()::getAll, db.attendanceDao()::insert, userId)

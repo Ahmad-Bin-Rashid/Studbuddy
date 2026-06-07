@@ -6,14 +6,38 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SemesterDao {
-    @Query("SELECT * FROM semesters LIMIT 1")
-    fun getSemesterFlow(): Flow<Semester?>
+    @Query("SELECT * FROM semesters ORDER BY createdAt DESC")
+    fun getAllFlow(): Flow<List<Semester>>
 
-    @Query("SELECT * FROM semesters LIMIT 1")
-    suspend fun getSemester(): Semester?
+    @Query("SELECT * FROM semesters")
+    suspend fun getAll(): List<Semester>
+
+    @Query("SELECT * FROM semesters WHERE isActive = 1 LIMIT 1")
+    fun getActiveSemesterFlow(): Flow<Semester?>
+
+    @Query("SELECT * FROM semesters WHERE isActive = 1 LIMIT 1")
+    suspend fun getActiveSemester(): Semester?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(semester: Semester)
+
+    @Update
+    suspend fun update(semester: Semester)
+
+    @Delete
+    suspend fun delete(semester: Semester)
+
+    @Transaction
+    suspend fun setActiveSemester(semesterId: String) {
+        clearActiveSemesters()
+        markAsActive(semesterId)
+    }
+
+    @Query("UPDATE semesters SET isActive = 0")
+    suspend fun clearActiveSemesters()
+
+    @Query("UPDATE semesters SET isActive = 1 WHERE id = :semesterId")
+    suspend fun markAsActive(semesterId: String)
 
     @Query("DELETE FROM semesters")
     suspend fun deleteAll()
@@ -26,6 +50,12 @@ interface CourseDao {
 
     @Query("SELECT * FROM courses")
     suspend fun getAll(): List<Course>
+
+    @Query("SELECT * FROM courses WHERE semesterId = :semesterId")
+    fun getCoursesBySemesterFlow(semesterId: String): Flow<List<Course>>
+
+    @Query("SELECT * FROM courses WHERE semesterId = :semesterId")
+    suspend fun getCoursesBySemester(semesterId: String): List<Course>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(course: Course)

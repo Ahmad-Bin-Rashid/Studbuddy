@@ -7,9 +7,14 @@ import kotlinx.coroutines.flow.Flow
 class StudBuddyRepository(private val db: StudBuddyDatabase) {
 
     // --- Semester ---
-    fun getSemesterFlow(): Flow<Semester?> = db.semesterDao().getSemesterFlow()
-    suspend fun getSemester(): Semester? = db.semesterDao().getSemester()
+    fun getAllSemestersFlow(): Flow<List<Semester>> = db.semesterDao().getAllFlow()
+    fun getActiveSemesterFlow(): Flow<Semester?> = db.semesterDao().getActiveSemesterFlow()
+    suspend fun getActiveSemester(): Semester? = db.semesterDao().getActiveSemester()
     suspend fun saveSemester(semester: Semester) = db.semesterDao().insert(semester)
+    suspend fun updateSemester(semester: Semester) = db.semesterDao().update(semester)
+    suspend fun deleteSemester(semester: Semester) = db.semesterDao().delete(semester)
+    suspend fun setActiveSemester(semesterId: String) = db.semesterDao().setActiveSemester(semesterId)
+
     suspend fun clearAll() {
         db.semesterDao().deleteAll()
         db.courseDao().deleteAll()
@@ -21,7 +26,9 @@ class StudBuddyRepository(private val db: StudBuddyDatabase) {
 
     // --- Courses ---
     fun getCoursesFlow(): Flow<List<Course>> = db.courseDao().getAllFlow()
+    fun getCoursesBySemesterFlow(semesterId: String): Flow<List<Course>> = db.courseDao().getCoursesBySemesterFlow(semesterId)
     suspend fun getCourses(): List<Course> = db.courseDao().getAll()
+    suspend fun getCoursesBySemester(semesterId: String): List<Course> = db.courseDao().getCoursesBySemester(semesterId)
     suspend fun addCourse(course: Course) = db.courseDao().insert(course)
     suspend fun updateCourse(course: Course) = db.courseDao().update(course)
     suspend fun deleteCourse(course: Course) = db.courseDao().delete(course)

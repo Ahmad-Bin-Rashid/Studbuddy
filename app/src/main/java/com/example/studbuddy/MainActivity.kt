@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         // Destinations where we want the hamburger icon instead of back button
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.homeFragment, R.id.coursesFragment, R.id.attendanceFragment,
+                R.id.homeFragment, R.id.semesterFragment, R.id.coursesFragment, R.id.attendanceFragment,
                 R.id.timetableFragment, R.id.assignmentsFragment, R.id.examsFragment,
                 R.id.gpaFragment, R.id.settingsFragment, R.id.profileFragment
             ), drawerLayout

@@ -185,7 +185,6 @@ class HomeFragment : Fragment() {
         val etName = dialogView.findViewById<EditText>(R.id.etSemesterName)
         val btnStart = dialogView.findViewById<Button>(R.id.btnStartDate)
         val btnEnd = dialogView.findViewById<Button>(R.id.btnEndDate)
-        val cbActive = dialogView.findViewById<CheckBox>(R.id.cbIsActive)
 
         var startMs = existingSemester?.startDate ?: 0L
         var endMs = existingSemester?.endDate ?: 0L
@@ -194,7 +193,6 @@ class HomeFragment : Fragment() {
         
         existingSemester?.let {
             etName.setText(it.name)
-            cbActive.isChecked = it.isActive
             if (startMs > 0) btnStart.text = sdf.format(Date(startMs))
             if (endMs > 0) btnEnd.text = sdf.format(Date(endMs))
         }
@@ -229,7 +227,7 @@ class HomeFragment : Fragment() {
                         name = name,
                         startDate = startMs,
                         endDate = endMs,
-                        isActive = cbActive.isChecked,
+                        isActive = existingSemester?.isActive ?: true,
                         gpa = existingSemester?.gpa ?: 0.0
                     )
                     viewModel.saveSemester(semester)

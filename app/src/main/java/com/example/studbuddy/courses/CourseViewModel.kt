@@ -16,43 +16,45 @@ data class CourseUiState(
 )
 
 @HiltViewModel
-class CourseViewModel @Inject constructor(private val repository: StudBuddyRepository) : ViewModel() {
+class CourseViewModel @Inject constructor(
+    private val repository: StudBuddyRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
+    private val semesterId: String? = savedStateHandle["semesterId"]
     private val _isLoading = MutableStateFlow(true)
 
     val uiState: StateFlow<CourseUiState> = combine(
-        repository.getCoursesFlow(),
-        repository.getSemesterFlow(),
+        if (semesterId != null) repository.getCoursesBySemesterFlow(semesterId) else repository.getCoursesFlow(),
+        if (semesterId != null) repository.getAllSemestersFlow().map { list -> list.find { it.id == semesterId } } else repository.getActiveSemesterFlow(),
         _isLoading
     ) { courses, semester, loading ->
         CourseUiState(courses, semester, loading)
     }.onEach {
-        if (it.courses.isNotEmpty() || it.semester != null) {
-            _isLoading.value = false
-        }
+        _isLoading.value = false
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CourseUiState()
+        initialValue = CourseUiState(isLoading = true)
     )
 
     fun addCourse(course: Course) {
         viewModelScope.launch {
             repository.addCourse(course)
-            updateSemesterGpa()
+            uiState.value.semester?.let { updateSemesterGpa(it.id) }
         }
     }
 
     fun updateCourse(course: Course) {
         viewModelScope.launch {
             repository.updateCourse(course)
-            updateSemesterGpa()
+            uiState.value.semester?.let { updateSemesterGpa(it.id) }
         }
     }
 
-    private suspend fun updateSemesterGpa() {
-        val currentSemester = repository.getSemester() ?: return
-        val currentCourses = repository.getCourses()
+    private suspend fun updateSemesterGpa(id: String) {
+        val currentSemester = repository.getAllSemestersFlow().first().find { it.id == id } ?: return
+        val currentCourses = repository.getCoursesBySemester(id)
         
         val coursesWithGrades = currentCourses.filter { it.grade != null }
         val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
@@ -61,7 +63,7 @@ class CourseViewModel @Inject constructor(private val repository: StudBuddyRepos
         val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else 0.0
         
         if (calculatedGpa != currentSemester.gpa) {
-            repository.saveSemester(currentSemester.copy(gpa = calculatedGpa))
+            repository.updateSemester(currentSemester.copy(gpa = calculatedGpa))
         }
     }
 }

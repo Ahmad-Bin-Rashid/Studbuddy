@@ -6,6 +6,10 @@
             android:icon="@android:drawable/ic_menu_myplaces"
             android:title="@string/nav_home" />
         <item
+            android:id="@+id/semesterFragment"
+            android:icon="@android:drawable/ic_menu_my_calendar"
+            android:title="@string/nav_semesters" />
+        <item
             android:id="@+id/coursesFragment"
             android:icon="@android:drawable/ic_menu_agenda"
             android:title="@string/nav_courses" />

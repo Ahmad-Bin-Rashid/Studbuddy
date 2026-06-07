@@ -19,7 +19,7 @@ class GpaViewModel @Inject constructor(private val repository: StudBuddyReposito
 
     val uiState: StateFlow<GpaUiState> = combine(
         repository.getCoursesFlow(),
-        repository.getSemesterFlow()
+        repository.getActiveSemesterFlow()
     ) { courseList, semester ->
         val coursesWithGrades = courseList.filter { it.grade != null }
         val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
