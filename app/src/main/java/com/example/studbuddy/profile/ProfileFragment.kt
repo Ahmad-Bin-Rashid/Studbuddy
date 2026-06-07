@@ -15,6 +15,8 @@ import com.example.studbuddy.core.models.AuthStatus
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -79,8 +81,12 @@ class ProfileFragment : Fragment() {
             viewModel.userState.collect { user ->
                 user ?: return@collect
                 editDisplayName.setText(user.displayName)
-                user.profileImageUri?.let {
-                    imgProfile.setImageURI(Uri.parse(it))
+                
+                imgProfile.load(user.profileImageUri) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_person_24)
+                    error(R.drawable.ic_person_24)
+                    transformations(CircleCropTransformation())
                 }
                 
                 if (user.authStatus == AuthStatus.SIGNED_IN) {

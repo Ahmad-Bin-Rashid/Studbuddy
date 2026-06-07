@@ -24,6 +24,8 @@ import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.imageview.ShapeableImageView
+import coil.load
+import coil.transform.CircleCropTransformation
 import android.widget.ImageView
 import android.widget.TextView
 import android.net.Uri
@@ -153,9 +155,12 @@ class MainActivity : AppCompatActivity() {
             userManager.userFlow.collect { user ->
                 txtName.text = user.displayName
                 txtEmail.text = user.email ?: "Guest Mode"
-                user.profileImageUri?.let { uri ->
-                    imgProfile.setImageURI(Uri.parse(uri))
-                } ?: imgProfile.setImageResource(R.drawable.ic_person_24)
+                imgProfile.load(user.profileImageUri) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_person_24)
+                    error(R.drawable.ic_person_24)
+                    transformations(CircleCropTransformation())
+                }
             }
         }
 

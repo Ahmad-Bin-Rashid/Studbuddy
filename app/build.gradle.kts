@@ -74,6 +74,7 @@ dependencies {
 
     // Play Services Auth
     implementation(libs.play.services.auth)
+    implementation(libs.coil)
 
     // Hilt
     implementation(libs.hilt.android)

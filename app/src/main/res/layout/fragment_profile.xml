@@ -13,8 +13,7 @@
         android:layout_gravity="center_horizontal"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-        android:src="@drawable/ic_person_24"
-        android:tint="?attr/colorOnSurfaceVariant" />
+        android:src="@drawable/ic_person_24" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnChangePhoto"
@@ -70,7 +69,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="Sync Status: Not Signed In"
+        android:textAlignment="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textAlignment="center" />
+        android:visibility="invisible" />
 
 </LinearLayout>
