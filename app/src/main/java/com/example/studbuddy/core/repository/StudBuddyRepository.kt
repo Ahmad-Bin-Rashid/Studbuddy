@@ -58,4 +58,9 @@ class StudBuddyRepository(private val db: StudBuddyDatabase) {
     suspend fun getExams(): List<Exam> = db.examDao().getAll()
     suspend fun updateExam(exam: Exam) = db.examDao().insert(exam)
     suspend fun deleteExam(examId: String) = db.examDao().deleteById(examId)
+
+    // --- Notes ---
+    fun getNotesByCourseFlow(courseId: String): Flow<List<Note>> = db.noteDao().getNotesByCourseFlow(courseId)
+    suspend fun addNote(note: Note) = db.noteDao().insert(note)
+    suspend fun deleteNote(note: Note) = db.noteDao().delete(note)
 }

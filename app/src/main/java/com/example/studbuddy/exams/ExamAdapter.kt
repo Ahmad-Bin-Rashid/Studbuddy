@@ -3,6 +3,9 @@ package com.example.studbuddy.exams
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.MenuItem
+import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -15,7 +18,8 @@ import java.util.concurrent.TimeUnit
 
 class ExamAdapter(
     private val exams: MutableList<Exam>,
-    private val onItemClicked: (Exam) -> Unit
+    private val onItemClicked: (Exam) -> Unit,
+    private val onDeleteClicked: (Exam) -> Unit
 ) : RecyclerView.Adapter<ExamAdapter.ExamViewHolder>() {
 
     private var courseList: List<Course> = emptyList()
@@ -27,6 +31,8 @@ class ExamAdapter(
         val tvVenue: TextView = view.findViewById(R.id.tvVenue)
         val tvMarks: TextView = view.findViewById(R.id.tvMarks)
         val tvWeightage: TextView = view.findViewById(R.id.tvWeightage)
+        val tvStatus: TextView = view.findViewById(R.id.tvStatus)
+        val btnMenu: ImageButton = view.findViewById(R.id.btnExamMenu)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExamViewHolder {
@@ -45,7 +51,15 @@ class ExamAdapter(
         val course = courseList.find { it.id == exam.courseId }
         holder.tvCourseName.text = course?.name ?: "Unknown Course"
         holder.tvVenue.text = "Venue: ${exam.venue ?: "Not set"}"
-        
+
+        if (exam.isCompleted) {
+            holder.tvStatus.text = "Completed"
+            holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorStatusNormal))
+        } else {
+            holder.tvStatus.text = "Pending"
+            holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorStatusCritical))
+        }
+
         val obtained = exam.obtainedMarks?.let { String.format("%.1f", it) } ?: "-"
         holder.tvMarks.text = "Marks: $obtained / ${exam.totalMarks}"
         holder.tvWeightage.text = "Weight: ${exam.weightage}%"
@@ -62,6 +76,26 @@ class ExamAdapter(
             }
         } else {
             holder.tvExamDate.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorTextSecondary))
+        }
+
+        holder.btnMenu.setOnClickListener { v ->
+            val popup = PopupMenu(v.context, v)
+            popup.menu.add(0, 1, 0, "Edit")
+            popup.menu.add(0, 2, 0, "Delete")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        onItemClicked(exam)
+                        true
+                    }
+                    2 -> {
+                        onDeleteClicked(exam)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
         }
 
         holder.itemView.setOnClickListener { onItemClicked(exam) }

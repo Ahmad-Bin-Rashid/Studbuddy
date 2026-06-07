@@ -4,7 +4,10 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.MenuItem
 import android.widget.CheckBox
+import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +21,8 @@ import java.util.concurrent.TimeUnit
 class AssignmentsAdapter(
     private val assignments: MutableList<Assignment>,
     private val onStatusChanged: (Assignment, Boolean) -> Unit,
-    private val onItemClicked: (Assignment) -> Unit
+    private val onItemClicked: (Assignment) -> Unit,
+    private val onDeleteClicked: (Assignment) -> Unit
 ) : RecyclerView.Adapter<AssignmentsAdapter.AssignmentViewHolder>() {
 
     private var courseList: List<Course> = emptyList()
@@ -30,6 +34,8 @@ class AssignmentsAdapter(
         val tvWeightage: TextView = view.findViewById(R.id.tvWeightage)
         val tvMarks: TextView = view.findViewById(R.id.tvMarks)
         val cbCompleted: CheckBox = view.findViewById(R.id.cbCompleted)
+        val tvStatus: TextView = view.findViewById(R.id.tvStatus)
+        val btnMenu: ImageButton = view.findViewById(R.id.btnAssignmentMenu)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssignmentViewHolder {
@@ -52,6 +58,14 @@ class AssignmentsAdapter(
         val course = courseList.find { it.id == assignment.courseId }
         holder.tvCourse.text = course?.name ?: "Unknown Course"
 
+        if (assignment.isCompleted) {
+            holder.tvStatus.text = "Completed"
+            holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorStatusNormal))
+        } else {
+            holder.tvStatus.text = "Pending"
+            holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.colorStatusCritical))
+        }
+
         // Highlight due date in red if 1 day or less is left (and not completed)
         if (!assignment.isCompleted) {
             val diff = assignment.dueDate - System.currentTimeMillis()
@@ -70,6 +84,26 @@ class AssignmentsAdapter(
         holder.cbCompleted.isChecked = assignment.isCompleted
         holder.cbCompleted.setOnCheckedChangeListener { _, isChecked ->
             onStatusChanged(assignment, isChecked)
+        }
+
+        holder.btnMenu.setOnClickListener { v ->
+            val popup = PopupMenu(v.context, v)
+            popup.menu.add(0, 1, 0, "Edit")
+            popup.menu.add(0, 2, 0, "Delete")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        onItemClicked(assignment)
+                        true
+                    }
+                    2 -> {
+                        onDeleteClicked(assignment)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
         }
 
         holder.itemView.setOnClickListener { onItemClicked(assignment) }

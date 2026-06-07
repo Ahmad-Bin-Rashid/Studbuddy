@@ -46,20 +46,27 @@ class AttendanceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val courseId = getCourseId()
         progressBar = view.findViewById(R.id.progressBar)
         layoutEmpty = view.findViewById(R.id.layoutEmpty)
         
-        setupViews(view)
+        setupViews(view, courseId)
         setupRecyclerView(view)
-        observeViewModel()
+        observeViewModel(courseId)
     }
 
-    private fun setupViews(view: View) {
+    private fun getCourseId(): String? {
+        return arguments?.getString("courseId") ?: parentFragment?.parentFragment?.arguments?.getString("courseId")
+    }
+
+    private fun setupViews(view: View, courseId: String?) {
         view.findViewById<Button>(R.id.btnMarkAttendance).setOnClickListener {
-            if (viewModel.uiState.value.courses.isEmpty()) {
+            val state = viewModel.uiState.value
+            if (state.courses.isEmpty()) {
                 Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
             } else {
-                showMarkAttendanceDialog(null)
+                val course = if (courseId != null) state.courses.find { it.id == courseId } else null
+                showMarkAttendanceDialog(null, course)
             }
         }
     }
@@ -73,15 +80,20 @@ class AttendanceFragment : Fragment() {
         recyclerViewAttendance.adapter = attendanceAdapter
     }
 
-    private fun observeViewModel() {
+    private fun observeViewModel(courseId: String?) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     
                     if (!state.isLoading) {
-                        attendanceAdapter.updateData(state.courses, state.attendance)
-                        updateEmptyState(state.courses.isEmpty())
+                        val filteredCourses = if (courseId != null) {
+                            state.courses.filter { it.id == courseId }
+                        } else {
+                            state.courses
+                        }
+                        attendanceAdapter.updateData(filteredCourses, state.attendance)
+                        updateEmptyState(filteredCourses.isEmpty())
                     }
                 }
             }
@@ -105,7 +117,7 @@ class AttendanceFragment : Fragment() {
         }
     }
 
-    private fun showMarkAttendanceDialog(existingRecord: AttendanceRecord?) {
+    private fun showMarkAttendanceDialog(existingRecord: AttendanceRecord?, preselectedCourse: Course? = null) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_mark_attendance, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val rgStatus = dialogView.findViewById<RadioGroup>(R.id.rgStatus)
@@ -113,7 +125,8 @@ class AttendanceFragment : Fragment() {
         val courses = viewModel.uiState.value.courses
         spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
 
-        existingRecord?.let { record ->
+        if (existingRecord != null) {
+            val record = existingRecord
             val courseIdx = courses.indexOfFirst { it.id == record.courseId }
             if (courseIdx != -1) {
                 spinnerCourses.setSelection(courseIdx)
@@ -123,6 +136,13 @@ class AttendanceFragment : Fragment() {
                 "PRESENT" -> rgStatus.check(R.id.rbPresent)
                 "ABSENT" -> rgStatus.check(R.id.rbAbsent)
                 "LATE" -> rgStatus.check(R.id.rbLate)
+            }
+        } else if (preselectedCourse != null) {
+            val courseIdx = courses.indexOfFirst { it.id == preselectedCourse.id }
+            if (courseIdx != -1) {
+                spinnerCourses.setSelection(courseIdx)
+                // We might want to keep it enabled if user wants to change, or disabled for strict context
+                // Let's keep it enabled but pre-selected.
             }
         }
 

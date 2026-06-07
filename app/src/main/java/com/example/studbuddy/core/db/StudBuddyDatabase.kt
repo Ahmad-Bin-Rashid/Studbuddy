@@ -14,9 +14,10 @@ import com.example.studbuddy.core.models.*
         TimetableEntry::class,
         AttendanceRecord::class,
         Assignment::class,
-        Exam::class
+        Exam::class,
+        Note::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -27,6 +28,7 @@ abstract class StudBuddyDatabase : RoomDatabase() {
     abstract fun attendanceDao(): AttendanceDao
     abstract fun assignmentDao(): AssignmentDao
     abstract fun examDao(): ExamDao
+    abstract fun noteDao(): NoteDao
 
     companion object {
         @Volatile

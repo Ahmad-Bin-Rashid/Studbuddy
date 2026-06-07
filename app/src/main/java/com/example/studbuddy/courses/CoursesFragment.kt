@@ -135,7 +135,10 @@ class CoursesFragment : Fragment() {
     private fun setupRecyclerView(view: View) {
         recyclerViewCourses = view.findViewById(R.id.recyclerViewCourses)
         courseAdapter = CourseAdapter(courseList) { course ->
-            showCourseDialog(course)
+            val bundle = Bundle().apply {
+                putString("courseId", course.id)
+            }
+            findNavController().navigate(R.id.action_coursesFragment_to_courseDetailFragment, bundle)
         }
         recyclerViewCourses.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewCourses.adapter = courseAdapter
@@ -177,10 +180,22 @@ class CoursesFragment : Fragment() {
     private fun showCourseDialog(existingCourse: Course?) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_course, null)
         val etName = dialogView.findViewById<EditText>(R.id.etCourseName)
+        val etDescription = dialogView.findViewById<EditText>(R.id.etDescription)
         val etInstructor = dialogView.findViewById<EditText>(R.id.etInstructor)
         val etCredits = dialogView.findViewById<EditText>(R.id.etCredits)
         val spinnerGrade = dialogView.findViewById<Spinner>(R.id.spinnerGrade)
+        val spinnerSemester = dialogView.findViewById<Spinner>(R.id.spinnerSemester)
         val tvGpDisplay = dialogView.findViewById<TextView>(R.id.tvGradePointsDisplay)
+
+        // Hide semester spinner when adding from specific semester view
+        spinnerSemester.visibility = View.GONE
+        dialogView.findViewById<View>(R.id.spinnerSemester).parent?.let { 
+            if (it is ViewGroup) {
+                // Also hide the "Semester" label which is the view before it
+                val index = it.indexOfChild(spinnerSemester.parent as View)
+                if (index > 0) it.getChildAt(index - 1).visibility = View.GONE
+            }
+        }
 
         val grades = gradeMap.keys.toList()
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
@@ -189,6 +204,7 @@ class CoursesFragment : Fragment() {
 
         existingCourse?.let {
             etName.setText(it.name)
+            etDescription.setText(it.description)
             etInstructor.setText(it.instructor)
             etCredits.setText(it.creditHours.toString())
             val gradeIndex = grades.indexOf(it.grade ?: "Select Grade")
@@ -216,6 +232,7 @@ class CoursesFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton(R.string.save_button) { _, _ ->
                 val name = etName.text.toString().trim()
+                val description = etDescription.text.toString().trim()
                 val instructor = etInstructor.text.toString().trim()
                 val credits = etCredits.text.toString().toIntOrNull() ?: 0
                 val selectedGrade = spinnerGrade.selectedItem.toString()
@@ -229,7 +246,7 @@ class CoursesFragment : Fragment() {
                     val course = Course(
                         id = existingCourse?.id ?: UUID.randomUUID().toString(),
                         name = name,
-                        description = existingCourse?.description,
+                        description = if (description.isEmpty()) null else description,
                         instructor = if (instructor.isEmpty()) null else instructor,
                         creditHours = credits,
                         semesterId = semester.id,

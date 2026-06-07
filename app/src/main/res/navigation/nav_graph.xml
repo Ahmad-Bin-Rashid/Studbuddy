@@ -27,6 +27,19 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="@null" />
+        <action
+            android:id="@+id/action_coursesFragment_to_courseDetailFragment"
+            app:destination="@id/courseDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/courseDetailFragment"
+        android:name="com.example.studbuddy.courses.details.CourseDetailFragment"
+        android:label="Course Details"
+        tools:layout="@layout/fragment_course_detail">
+        <argument
+            android:name="courseId"
+            app:argType="string" />
     </fragment>
 
     <fragment

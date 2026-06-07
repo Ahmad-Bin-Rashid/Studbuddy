@@ -147,3 +147,15 @@ interface ExamDao {
     @Query("DELETE FROM exams")
     suspend fun deleteAll()
 }
+
+@Dao
+interface NoteDao {
+    @Query("SELECT * FROM notes WHERE courseId = :courseId ORDER BY createdAt DESC")
+    fun getNotesByCourseFlow(courseId: String): Flow<List<Note>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(note: Note)
+
+    @Delete
+    suspend fun delete(note: Note)
+}

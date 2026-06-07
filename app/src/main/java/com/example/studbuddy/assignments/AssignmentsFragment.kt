@@ -2,12 +2,12 @@ package com.example.studbuddy.assignments
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -55,23 +55,49 @@ class AssignmentsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val courseId = getCourseId()
         progressBar = view.findViewById(R.id.progressBar)
         layoutEmpty = view.findViewById(R.id.layoutEmpty)
         scrollView = view.findViewById(R.id.scrollView)
         
         setupViews(view)
         setupRecyclerViews(view)
-        observeViewModel()
+        setupMenu(courseId)
+        observeViewModel(courseId)
+    }
+
+    private fun getCourseId(): String? {
+        return arguments?.getString("courseId") ?: parentFragment?.parentFragment?.arguments?.getString("courseId")
+    }
+
+    private fun setupMenu(courseId: String?) {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.add(Menu.NONE, 1, Menu.NONE, "Add Assignment").apply {
+                    setIcon(android.R.drawable.ic_input_add)
+                    setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                }
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                if (menuItem.itemId == 1) {
+                    val state = viewModel.uiState.value
+                    if (state.courses.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val course = if (courseId != null) state.courses.find { it.id == courseId } else null
+                        showAssignmentDialog(null, course)
+                    }
+                    return true
+                }
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupViews(view: View) {
-        view.findViewById<Button>(R.id.btnAddAssignment).setOnClickListener {
-            if (viewModel.uiState.value.courses.isEmpty()) {
-                Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
-            } else {
-                showAssignmentDialog(null)
-            }
-        }
+        // No button to setup anymore
     }
 
     private fun setupRecyclerViews(view: View) {
@@ -82,12 +108,16 @@ class AssignmentsFragment : Fragment() {
             updateAssignmentStatus(assignment, isChecked)
         }, { assignment ->
             showAssignmentDialog(assignment)
+        }, { assignment ->
+            confirmDelete(assignment)
         })
 
         completedAdapter = AssignmentsAdapter(completedList, { assignment, isChecked ->
             updateAssignmentStatus(assignment, isChecked)
         }, { assignment ->
             showAssignmentDialog(assignment)
+        }, { assignment ->
+            confirmDelete(assignment)
         })
 
         rvPending.layoutManager = LinearLayoutManager(requireContext())
@@ -97,15 +127,20 @@ class AssignmentsFragment : Fragment() {
         rvCompleted.adapter = completedAdapter
     }
 
-    private fun observeViewModel() {
+    private fun observeViewModel(courseId: String?) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     
                     if (!state.isLoading) {
-                        updateAdapters(state.assignments, state.courses)
-                        updateEmptyState(state.assignments.isEmpty())
+                        val filteredAssignments = if (courseId != null) {
+                            state.assignments.filter { it.courseId == courseId }
+                        } else {
+                            state.assignments
+                        }
+                        updateAdapters(filteredAssignments, state.courses)
+                        updateEmptyState(filteredAssignments.isEmpty())
                     }
                 }
             }
@@ -148,7 +183,7 @@ class AssignmentsFragment : Fragment() {
         }
     }
 
-    private fun showAssignmentDialog(existing: Assignment?) {
+    private fun showAssignmentDialog(existing: Assignment?, preselectedCourse: com.example.studbuddy.core.models.Course? = null) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_assignment, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val etName = dialogView.findViewById<EditText>(R.id.etAssignmentTitle)
@@ -171,11 +206,21 @@ class AssignmentsFragment : Fragment() {
             etWeight.setText(existing.weightage.toString())
             btnDate.text = sdf.format(Date(existing.dueDate))
             val courseIdx = courses.indexOfFirst { it.id == existing.courseId }
-            if (courseIdx != -1) spinnerCourses.setSelection(courseIdx)
+            if (courseIdx != -1) {
+                spinnerCourses.setSelection(courseIdx)
+                spinnerCourses.isEnabled = false
+            }
             
             if (existing.isCompleted) {
                 layoutObtained.visibility = View.VISIBLE
                 etObtained.setText(existing.obtainedMarks?.toString() ?: "")
+            }
+        } else if (preselectedCourse != null) {
+            val courseIdx = courses.indexOfFirst { it.id == preselectedCourse.id }
+            if (courseIdx != -1) {
+                spinnerCourses.setSelection(courseIdx)
+                // Optionally disable if we want to enforce context
+                // spinnerCourses.isEnabled = false
             }
         }
 

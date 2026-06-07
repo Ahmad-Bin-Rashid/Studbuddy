@@ -3,12 +3,12 @@ package com.example.studbuddy.exams
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -58,31 +58,66 @@ class ExamsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val courseId = getCourseId()
         progressBar = view.findViewById(R.id.progressBar)
         layoutEmpty = view.findViewById(R.id.layoutEmpty)
         scrollView = view.findViewById(R.id.scrollView)
         
         setupViews(view)
         setupRecyclerViews(view)
-        observeViewModel()
+        setupMenu(courseId)
+        observeViewModel(courseId)
+    }
+
+    private fun getCourseId(): String? {
+        return arguments?.getString("courseId") ?: parentFragment?.parentFragment?.arguments?.getString("courseId")
+    }
+
+    private fun setupMenu(courseId: String?) {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.add(Menu.NONE, 1, Menu.NONE, "Add Exam").apply {
+                    setIcon(android.R.drawable.ic_input_add)
+                    setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                }
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                if (menuItem.itemId == 1) {
+                    val state = viewModel.uiState.value
+                    if (state.courses.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val course = if (courseId != null) state.courses.find { it.id == courseId } else null
+                        showExamDialog(null, course)
+                    }
+                    return true
+                }
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupViews(view: View) {
-        view.findViewById<Button>(R.id.btnAddExam).setOnClickListener {
-            if (viewModel.uiState.value.courses.isEmpty()) {
-                Toast.makeText(requireContext(), "Please add courses first", Toast.LENGTH_SHORT).show()
-            } else {
-                showExamDialog(null)
-            }
-        }
+        // No button to setup anymore
     }
 
     private fun setupRecyclerViews(view: View) {
         rvPending = view.findViewById(R.id.rvPendingExams)
         rvCompleted = view.findViewById(R.id.rvCompletedExams)
 
-        pendingAdapter = ExamAdapter(pendingList) { exam -> showExamDialog(exam) }
-        completedAdapter = ExamAdapter(completedList) { exam -> showExamDialog(exam) }
+        pendingAdapter = ExamAdapter(pendingList, { exam ->
+            showExamDialog(exam)
+        }, { exam ->
+            confirmDelete(exam)
+        })
+
+        completedAdapter = ExamAdapter(completedList, { exam ->
+            showExamDialog(exam)
+        }, { exam ->
+            confirmDelete(exam)
+        })
 
         rvPending.layoutManager = LinearLayoutManager(requireContext())
         rvPending.adapter = pendingAdapter
@@ -91,15 +126,20 @@ class ExamsFragment : Fragment() {
         rvCompleted.adapter = completedAdapter
     }
 
-    private fun observeViewModel() {
+    private fun observeViewModel(courseId: String?) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     
                     if (!state.isLoading) {
-                        updateAdapters(state.exams, state.courses)
-                        updateEmptyState(state.exams.isEmpty())
+                        val filteredExams = if (courseId != null) {
+                            state.exams.filter { it.courseId == courseId }
+                        } else {
+                            state.exams
+                        }
+                        updateAdapters(filteredExams, state.courses)
+                        updateEmptyState(filteredExams.isEmpty())
                     }
                 }
             }
@@ -131,7 +171,7 @@ class ExamsFragment : Fragment() {
         completedAdapter.updateData(completed, allCourses)
     }
 
-    private fun showExamDialog(existing: Exam?) {
+    private fun showExamDialog(existing: Exam?, preselectedCourse: Course? = null) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_exam, null)
         val spinnerCourses = dialogView.findViewById<Spinner>(R.id.spinnerCourses)
         val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerExamType)
@@ -150,18 +190,27 @@ class ExamsFragment : Fragment() {
         spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ExamType.entries.map { it.name })
 
         val calendar = Calendar.getInstance()
-        existing?.let { 
-            calendar.timeInMillis = it.date
-            etVenue.setText(it.venue)
-            etTotalMarks.setText(it.totalMarks.toString())
-            etWeightage.setText(it.weightage.toString())
-            cbCompleted.isChecked = it.isCompleted
-            etObtained.setText(it.obtainedMarks?.toString() ?: "")
-            if (it.isCompleted) layoutObtained.visibility = View.VISIBLE
+        if (existing != null) { 
+            calendar.timeInMillis = existing.date
+            etVenue.setText(existing.venue)
+            etTotalMarks.setText(existing.totalMarks.toString())
+            etWeightage.setText(existing.weightage.toString())
+            cbCompleted.isChecked = existing.isCompleted
+            etObtained.setText(existing.obtainedMarks?.toString() ?: "")
+            if (existing.isCompleted) layoutObtained.visibility = View.VISIBLE
             
-            val courseIdx = courses.indexOfFirst { c -> c.id == it.courseId }
-            if (courseIdx != -1) spinnerCourses.setSelection(courseIdx)
-            spinnerType.setSelection(it.type.ordinal)
+            val courseIdx = courses.indexOfFirst { c -> c.id == existing.courseId }
+            if (courseIdx != -1) {
+                spinnerCourses.setSelection(courseIdx)
+                spinnerCourses.isEnabled = false
+            }
+            spinnerType.setSelection(existing.type.ordinal)
+        } else if (preselectedCourse != null) {
+            val courseIdx = courses.indexOfFirst { it.id == preselectedCourse.id }
+            if (courseIdx != -1) {
+                spinnerCourses.setSelection(courseIdx)
+                // spinnerCourses.isEnabled = false
+            }
         }
 
         val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
