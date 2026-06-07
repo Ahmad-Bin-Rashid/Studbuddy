@@ -32,18 +32,18 @@ class RepositoryTest {
     @Test
     fun testGetSemester() = runBlocking {
         val semester = Semester(name = "Test Sem", startDate = 0, endDate = 0)
-        `when`(semesterDao.getSemester()).thenReturn(semester)
+        `when`(semesterDao.getActiveSemester()).thenReturn(semester)
 
-        val result = repository.getSemester()
+        val result = repository.getActiveSemester()
         assertEquals("Test Sem", result?.name)
     }
 
     @Test
     fun testGetSemesterFlow() = runBlocking {
         val semester = Semester(name = "Flow Sem", startDate = 0, endDate = 0)
-        `when`(semesterDao.getSemesterFlow()).thenReturn(flowOf(semester))
+        `when`(semesterDao.getActiveSemesterFlow()).thenReturn(flowOf(semester))
 
-        val result = repository.getSemesterFlow().first()
+        val result = repository.getActiveSemesterFlow().first()
         assertEquals("Flow Sem", result?.name)
     }
 }
