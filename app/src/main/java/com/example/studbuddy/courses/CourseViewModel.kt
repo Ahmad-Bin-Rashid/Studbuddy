@@ -60,7 +60,7 @@ class CourseViewModel @Inject constructor(
         val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
         val totalCredits = coursesWithGrades.sumOf { it.creditHours }
         
-        val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else 0.0
+        val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else null
         
         if (calculatedGpa != currentSemester.gpa) {
             repository.updateSemester(currentSemester.copy(gpa = calculatedGpa))

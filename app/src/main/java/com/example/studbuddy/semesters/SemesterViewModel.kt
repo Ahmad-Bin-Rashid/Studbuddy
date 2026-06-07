@@ -9,10 +9,15 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SemesterSortBy { CREATION, DATE }
+enum class SortOrder { ASC, DESC }
+
 data class SemesterUiState(
     val semesters: List<Semester> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val sortBy: SemesterSortBy = SemesterSortBy.CREATION,
+    val sortOrder: SortOrder = SortOrder.DESC
 )
 
 @HiltViewModel
@@ -22,13 +27,27 @@ class SemesterViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(true)
     private val _error = MutableStateFlow<String?>(null)
+    private val _sortBy = MutableStateFlow(SemesterSortBy.CREATION)
+    private val _sortOrder = MutableStateFlow(SortOrder.DESC)
 
     val uiState: StateFlow<SemesterUiState> = combine(
         repository.getAllSemestersFlow(),
+        _sortBy,
+        _sortOrder,
         _isLoading,
         _error
-    ) { semesters, loading, error ->
-        SemesterUiState(semesters, loading, error)
+    ) { semesters, sortBy, sortOrder, loading, error ->
+        val sortedList = when (sortBy) {
+            SemesterSortBy.CREATION -> {
+                if (sortOrder == SortOrder.ASC) semesters.sortedBy { it.createdAt }
+                else semesters.sortedByDescending { it.createdAt }
+            }
+            SemesterSortBy.DATE -> {
+                if (sortOrder == SortOrder.ASC) semesters.sortedBy { it.startDate }
+                else semesters.sortedByDescending { it.startDate }
+            }
+        }
+        SemesterUiState(sortedList, loading, error, sortBy, sortOrder)
     }.onEach {
         _isLoading.value = false
     }.stateIn(
@@ -36,6 +55,14 @@ class SemesterViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = SemesterUiState(isLoading = true)
     )
+
+    fun setSortBy(sortBy: SemesterSortBy) {
+        _sortBy.value = sortBy
+    }
+
+    fun setSortOrder(order: SortOrder) {
+        _sortOrder.value = order
+    }
 
     fun addSemester(name: String, startDate: Long, endDate: Long) {
         viewModelScope.launch {

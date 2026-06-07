@@ -16,7 +16,7 @@ import com.example.studbuddy.core.models.*
         Assignment::class,
         Exam::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

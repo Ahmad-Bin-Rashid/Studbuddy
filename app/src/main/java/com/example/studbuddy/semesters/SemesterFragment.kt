@@ -2,11 +2,11 @@ package com.example.studbuddy.semesters
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -55,7 +55,48 @@ class SemesterFragment : Fragment() {
 
         setupRecyclerView()
         setupViews(view)
+        setupMenu()
         observeViewModel()
+    }
+
+    private fun setupMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.semester_sort_menu, menu)
+                
+                // Update menu state based on current ViewModel state
+                val state = viewModel.uiState.value
+                menu.findItem(if (state.sortBy == SemesterSortBy.CREATION) R.id.sort_by_creation else R.id.sort_by_date)?.isChecked = true
+                menu.findItem(if (state.sortOrder == SortOrder.ASC) R.id.order_asc else R.id.order_desc)?.isChecked = true
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.sort_by_creation -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortBy(SemesterSortBy.CREATION)
+                        true
+                    }
+                    R.id.sort_by_date -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortBy(SemesterSortBy.DATE)
+                        true
+                    }
+                    R.id.order_asc -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortOrder(SortOrder.ASC)
+                        true
+                    }
+                    R.id.order_desc -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortOrder(SortOrder.DESC)
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupRecyclerView() {

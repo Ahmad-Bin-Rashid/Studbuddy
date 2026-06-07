@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
@@ -72,7 +73,10 @@ class CoursesFragment : Fragment() {
         view.findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
             val semester = viewModel.uiState.value.semester
             if (semester == null) {
-                Toast.makeText(requireContext(), "Please setup a semester first", Toast.LENGTH_SHORT).show()
+                // If no semester context (e.g. accessed from sidebar without active semester)
+                Toast.makeText(requireContext(), "Please setup or select a semester first", Toast.LENGTH_SHORT).show()
+                // Optionally navigate to semester page
+                findNavController().navigate(R.id.semesterFragment)
             } else {
                 showCourseDialog(null)
             }

@@ -51,7 +51,7 @@ class SemesterAdapter(
             val end = dateFormat.format(Date(semester.endDate))
             tvDates.text = "$start - $end"
             
-            if (semester.gpa > 0) {
+            if (semester.gpa != null) {
                 tvGpa.text = "GPA: ${String.format("%.2f", semester.gpa)}"
                 tvGpa.visibility = View.VISIBLE
             } else {

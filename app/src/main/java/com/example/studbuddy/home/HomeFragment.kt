@@ -228,7 +228,7 @@ class HomeFragment : Fragment() {
                         startDate = startMs,
                         endDate = endMs,
                         isActive = existingSemester?.isActive ?: true,
-                        gpa = existingSemester?.gpa ?: 0.0
+                        gpa = existingSemester?.gpa
                     )
                     viewModel.saveSemester(semester)
                 } else {
