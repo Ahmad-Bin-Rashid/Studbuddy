@@ -27,11 +27,7 @@
             android:title="@string/nav_gpa" />
     </group>
 
-    <item android:title="System">
-        <menu>
-            <item
-                android:id="@+id/settingsFragment"
-                android:title="@string/nav_settings" />
-        </menu>
-    </item>
+    <item
+        android:id="@+id/settingsFragment"
+        android:title="@string/nav_settings" />
 </menu>

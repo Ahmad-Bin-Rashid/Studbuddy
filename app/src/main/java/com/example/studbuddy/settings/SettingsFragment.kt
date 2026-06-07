@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
 
+    private lateinit var cardProfile: MaterialCardView
     private lateinit var cardNotifications: MaterialCardView
     private lateinit var cardAppearance: MaterialCardView
 
@@ -30,8 +31,14 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        cardProfile = view.findViewById(R.id.cardProfile)
         cardNotifications = view.findViewById(R.id.cardNotifications)
         cardAppearance = view.findViewById(R.id.cardAppearance)
+
+        // Navigate to Profile page
+        cardProfile.setOnClickListener {
+            findNavController().navigate(R.id.profileFragment)
+        }
 
         // Navigate to Notifications Sub-page
         cardNotifications.setOnClickListener {

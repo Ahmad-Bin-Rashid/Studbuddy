@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navController: androidx.navigation.NavController
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -67,14 +68,14 @@ class MainActivity : AppCompatActivity() {
         
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.navHostFragment) as NavHostFragment
-        val navController = navHostFragment.navController
+        navController = navHostFragment.navController
 
         // Destinations where we want the hamburger icon instead of back button
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.homeFragment, R.id.semesterFragment, R.id.coursesFragment, R.id.attendanceFragment,
                 R.id.timetableFragment, R.id.assignmentsFragment, R.id.examsFragment,
-                R.id.gpaFragment, R.id.settingsFragment, R.id.profileFragment
+                R.id.gpaFragment, R.id.settingsFragment
             ), drawerLayout
         )
 
@@ -117,9 +118,30 @@ class MainActivity : AppCompatActivity() {
 
         // We still call this but it's partially overridden by our listener above
         // This is mainly to keep sync for back-press or direct navigate() calls
-        navController.addOnDestinationChangedListener { _, destination, _ ->
+        navController.addOnDestinationChangedListener { _, destination, arguments ->
             // This ensures sidebar selection stays in sync even if navigation happened elsewhere
             navView.setCheckedItem(destination.id)
+
+            val isSemesterDrivenCourses = destination.id == R.id.coursesFragment && arguments?.getString("semesterId") != null
+            val topLevelDestinations = mutableSetOf(
+                R.id.homeFragment,
+                R.id.semesterFragment,
+                R.id.coursesFragment,
+                R.id.attendanceFragment,
+                R.id.timetableFragment,
+                R.id.assignmentsFragment,
+                R.id.examsFragment,
+                R.id.gpaFragment,
+                R.id.settingsFragment
+            )
+
+            if (isSemesterDrivenCourses || destination.id == R.id.profileFragment) {
+                topLevelDestinations.remove(R.id.coursesFragment)
+                topLevelDestinations.remove(R.id.profileFragment)
+            }
+
+            appBarConfiguration = AppBarConfiguration(topLevelDestinations, drawerLayout)
+            setupActionBarWithNavController(navController, appBarConfiguration)
         }
 
         val headerView = navView.getHeaderView(0)
