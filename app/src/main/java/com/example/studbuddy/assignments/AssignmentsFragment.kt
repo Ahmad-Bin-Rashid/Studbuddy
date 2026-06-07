@@ -75,7 +75,7 @@ class AssignmentsFragment : Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.add(Menu.NONE, 1, Menu.NONE, "Add Assignment").apply {
-                    setIcon(android.R.drawable.ic_input_add)
+                    setIcon(R.drawable.ic_add_24)
                     setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 }
             }
@@ -153,7 +153,7 @@ class AssignmentsFragment : Fragment() {
                 layoutEmpty.visibility = View.VISIBLE
                 layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
                 
-                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_edit)
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(R.drawable.ic_assignment_24)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_assignments_title)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_assignments_desc)
             }

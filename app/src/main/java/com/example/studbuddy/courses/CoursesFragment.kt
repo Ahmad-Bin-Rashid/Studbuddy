@@ -166,7 +166,7 @@ class CoursesFragment : Fragment() {
                 layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
                 
                 // Customize empty state for courses
-                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_agenda)
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(R.drawable.ic_book_24)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_courses_title)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_courses_desc)
             }

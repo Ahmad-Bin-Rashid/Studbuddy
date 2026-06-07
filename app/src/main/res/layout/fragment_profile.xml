@@ -13,7 +13,8 @@
         android:layout_gravity="center_horizontal"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-        android:src="@android:drawable/ic_menu_gallery" />
+        android:src="@drawable/ic_person_24"
+        android:tint="?attr/colorOnSurfaceVariant" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnChangePhoto"
@@ -50,7 +51,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Sign in with Google"
-        app:icon="@android:drawable/ic_menu_search" />
+        app:icon="@drawable/ic_person_24"
+        app:iconTint="?attr/colorPrimary" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSignOut"

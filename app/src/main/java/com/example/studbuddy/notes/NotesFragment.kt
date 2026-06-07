@@ -76,7 +76,7 @@ class NotesFragment : Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.add(Menu.NONE, 1, Menu.NONE, "Add Note").apply {
-                    setIcon(android.R.drawable.ic_input_add)
+                    setIcon(R.drawable.ic_add_24)
                     setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 }
             }

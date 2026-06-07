@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                 txtEmail.text = user.email ?: "Guest Mode"
                 user.profileImageUri?.let { uri ->
                     imgProfile.setImageURI(Uri.parse(uri))
-                } ?: imgProfile.setImageResource(android.R.drawable.ic_menu_gallery)
+                } ?: imgProfile.setImageResource(R.drawable.ic_person_24)
             }
         }
 

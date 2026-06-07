@@ -89,7 +89,7 @@ class TimetableFragment : Fragment() {
                 layoutEmpty.visibility = View.VISIBLE
                 layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
                 
-                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_today)
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(R.drawable.ic_event_24)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_timetable_title)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_timetable_desc)
             }

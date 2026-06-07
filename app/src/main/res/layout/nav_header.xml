@@ -17,7 +17,8 @@
         android:layout_height="64dp"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-        android:src="@android:drawable/ic_menu_gallery" />
+        android:src="@drawable/ic_person_24"
+        android:tint="?attr/colorOnSurfaceVariant" />
 
     <TextView
         android:id="@+id/txtHeaderName"

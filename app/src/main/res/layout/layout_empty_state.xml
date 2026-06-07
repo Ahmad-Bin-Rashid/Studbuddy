@@ -13,8 +13,8 @@
         android:id="@+id/imgEmptyState"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@android:drawable/ic_menu_edit"
-        app:tint="?attr/colorOutline"
+        android:src="@drawable/ic_empty_state_24"
+        android:tint="?attr/colorOutline"
         android:contentDescription="@string/empty_state_content_description" />
 
     <TextView

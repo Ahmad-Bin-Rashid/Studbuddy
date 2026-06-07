@@ -148,7 +148,7 @@ class SemesterFragment : Fragment() {
                 layoutEmpty.visibility = View.VISIBLE
                 layoutEmpty.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_in))
                 
-                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(android.R.drawable.ic_menu_my_calendar)
+                layoutEmpty.findViewById<ImageView>(R.id.imgEmptyState).setImageResource(R.drawable.ic_calendar_month_24)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyTitle).setText(R.string.empty_semesters_title)
                 layoutEmpty.findViewById<TextView>(R.id.tvEmptyDescription).setText(R.string.empty_semesters_desc)
             }
