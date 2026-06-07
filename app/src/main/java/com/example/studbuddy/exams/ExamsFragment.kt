@@ -207,11 +207,16 @@ class ExamsFragment : Fragment() {
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
-        val courses = viewModel.uiState.value.courses
+        val state = viewModel.uiState.value
+        val courses = if (state.activeSemester != null) {
+            state.courses.filter { it.semesterId == state.activeSemester.id }
+        } else {
+            state.courses
+        }
         if (courses.isEmpty()) return
         
-        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
-        spinnerType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, ExamType.entries.map { it.name })
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, courses.map { it.name })
+        spinnerType.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, ExamType.entries.map { it.name })
 
         val calendar = Calendar.getInstance()
         if (existing != null) { 
@@ -249,6 +254,7 @@ class ExamsFragment : Fragment() {
                     calendar.set(Calendar.HOUR_OF_DAY, hh)
                     calendar.set(Calendar.MINUTE, mm)
                     btnDate.text = sdf.format(calendar.time)
+                    cbCompleted.isChecked = calendar.timeInMillis < System.currentTimeMillis()
                 }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
         }

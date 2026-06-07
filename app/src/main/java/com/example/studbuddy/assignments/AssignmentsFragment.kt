@@ -203,9 +203,14 @@ class AssignmentsFragment : Fragment() {
         val layoutObtained = dialogView.findViewById<View>(R.id.layoutObtainedMarks)
         val etObtained = dialogView.findViewById<EditText>(R.id.etObtainedMarks)
 
-        val courses = viewModel.uiState.value.courses
+        val state = viewModel.uiState.value
+        val courses = if (state.activeSemester != null) {
+            state.courses.filter { it.semesterId == state.activeSemester.id }
+        } else {
+            state.courses
+        }
         val courseNames = courses.map { it.name }
-        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courseNames)
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, courseNames)
 
         val selectedCalendar = Calendar.getInstance().apply {
             timeInMillis = existing?.dueDate ?: System.currentTimeMillis()
