@@ -33,6 +33,36 @@ class StudBuddyRepository(private val db: StudBuddyDatabase) {
     suspend fun updateCourse(course: Course) = db.courseDao().update(course)
     suspend fun deleteCourse(course: Course) = db.courseDao().delete(course)
 
+    suspend fun addCourseWithGpaUpdate(course: Course) {
+        addCourse(course)
+        recalculateSemesterGpa(course.semesterId)
+    }
+
+    suspend fun updateCourseWithGpaUpdate(course: Course) {
+        updateCourse(course)
+        recalculateSemesterGpa(course.semesterId)
+    }
+
+    suspend fun deleteCourseWithGpaUpdate(course: Course) {
+        deleteCourse(course)
+        recalculateSemesterGpa(course.semesterId)
+    }
+
+    private suspend fun recalculateSemesterGpa(semesterId: String) {
+        val semester = db.semesterDao().getAll().find { it.id == semesterId } ?: return
+        val courses = db.courseDao().getCoursesBySemester(semesterId)
+        
+        val coursesWithGrades = courses.filter { it.grade != null }
+        val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
+        val totalCredits = coursesWithGrades.sumOf { it.creditHours }
+        
+        val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else null
+        
+        if (calculatedGpa != semester.gpa) {
+            db.semesterDao().update(semester.copy(gpa = calculatedGpa))
+        }
+    }
+
     // --- Timetable ---
     fun getTimetableFlow(): Flow<List<TimetableEntry>> = db.timetableDao().getAllFlow()
     suspend fun getTimetable(): List<TimetableEntry> = db.timetableDao().getAll()

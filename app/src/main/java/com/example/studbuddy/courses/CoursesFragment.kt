@@ -1,6 +1,8 @@
 package com.example.studbuddy.courses
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
@@ -18,6 +20,7 @@ import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.semesters.SortOrder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -179,9 +182,11 @@ class CoursesFragment : Fragment() {
 
     private fun showCourseDialog(existingCourse: Course?) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_course, null)
+        val tilName = dialogView.findViewById<TextInputLayout>(R.id.tilCourseName)
         val etName = dialogView.findViewById<EditText>(R.id.etCourseName)
         val etDescription = dialogView.findViewById<EditText>(R.id.etDescription)
         val etInstructor = dialogView.findViewById<EditText>(R.id.etInstructor)
+        val tilCredits = dialogView.findViewById<TextInputLayout>(R.id.tilCredits)
         val etCredits = dialogView.findViewById<EditText>(R.id.etCredits)
         val spinnerGrade = dialogView.findViewById<Spinner>(R.id.spinnerGrade)
         val spinnerSemester = dialogView.findViewById<Spinner>(R.id.spinnerSemester)
@@ -189,13 +194,8 @@ class CoursesFragment : Fragment() {
 
         // Hide semester spinner when adding from specific semester view
         spinnerSemester.visibility = View.GONE
-        dialogView.findViewById<View>(R.id.spinnerSemester).parent?.let { 
-            if (it is ViewGroup) {
-                // Also hide the "Semester" label which is the view before it
-                val index = it.indexOfChild(spinnerSemester.parent as View)
-                if (index > 0) it.getChildAt(index - 1).visibility = View.GONE
-            }
-        }
+        dialogView.findViewById<View>(R.id.cardSemester).visibility = View.GONE
+        dialogView.findViewById<View>(R.id.tvSemesterLabel).visibility = View.GONE
 
         val grades = gradeMap.keys.toList()
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
@@ -212,35 +212,68 @@ class CoursesFragment : Fragment() {
             tvGpDisplay.text = "Grade Points: ${String.format(Locale.getDefault(), "%.2f", it.gradePoints)}"
         }
 
+        fun updateGpDisplay() {
+            val selectedGrade = spinnerGrade.selectedItem?.toString() ?: "Select Grade"
+            val basePoints = gradeMap[selectedGrade] ?: -1.0
+            val credits = etCredits.text.toString().toIntOrNull() ?: 0
+            
+            if (basePoints >= 0 && credits > 0) {
+                tvGpDisplay.text = "Grade Points: ${String.format(Locale.getDefault(), "%.2f", basePoints * credits)}"
+            } else {
+                tvGpDisplay.text = "Grade Points: 0.00"
+            }
+        }
+
+        etCredits.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateGpDisplay()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         spinnerGrade.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedGrade = grades[position]
-                val basePoints = gradeMap[selectedGrade] ?: -1.0
-                val credits = etCredits.text.toString().toIntOrNull() ?: 0
-                
-                if (basePoints >= 0 && credits > 0) {
-                    tvGpDisplay.text = "Grade Points: ${String.format(Locale.getDefault(), "%.2f", basePoints * credits)}"
-                } else {
-                    tvGpDisplay.text = "Grade Points: 0.00"
-                }
+                updateGpDisplay()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existingCourse == null) "Add Course" else "Edit Course")
             .setView(dialogView)
-            .setPositiveButton(R.string.save_button) { _, _ ->
-                val name = etName.text.toString().trim()
-                val description = etDescription.text.toString().trim()
-                val instructor = etInstructor.text.toString().trim()
-                val credits = etCredits.text.toString().toIntOrNull() ?: 0
-                val selectedGrade = spinnerGrade.selectedItem.toString()
-                val basePoints = gradeMap[selectedGrade] ?: -1.0
-                
+            .setPositiveButton(R.string.save_button, null)
+            .setNegativeButton(R.string.cancel_button, null)
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val name = etName.text.toString().trim()
+            val description = etDescription.text.toString().trim()
+            val instructor = etInstructor.text.toString().trim()
+            val credits = etCredits.text.toString().toIntOrNull() ?: 0
+            val selectedGrade = spinnerGrade.selectedItem.toString()
+            val basePoints = gradeMap[selectedGrade] ?: -1.0
+            
+            var isValid = true
+            if (name.isEmpty()) {
+                tilName.error = "Course name is required"
+                isValid = false
+            } else {
+                tilName.error = null
+            }
+
+            if (credits <= 0) {
+                tilCredits.error = "Enter valid credit hours"
+                isValid = false
+            } else {
+                tilCredits.error = null
+            }
+
+            if (isValid) {
                 val semester = viewModel.uiState.value.semester
-                
-                if (name.isNotEmpty() && credits > 0 && semester != null) {
+                if (semester != null) {
                     val gradePoints = if (basePoints >= 0) basePoints * credits else 0.0
                     
                     val course = Course(
@@ -260,11 +293,11 @@ class CoursesFragment : Fragment() {
                     } else {
                         viewModel.updateCourse(course)
                     }
+                    dialog.dismiss()
                 } else {
-                    Toast.makeText(requireContext(), "Please enter valid details", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Semester not found", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(R.string.cancel_button, null)
-            .show()
+        }
     }
 }

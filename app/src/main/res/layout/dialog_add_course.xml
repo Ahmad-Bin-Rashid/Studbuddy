@@ -1,119 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Course Name"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="12dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etCourseName"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCourseName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapWords" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Course Name"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="12dp">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Description (Optional)"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCourseName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etDescription"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCredits"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textMultiLine" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Credit Hours"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="12dp">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Instructor (Optional)"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCredits"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etInstructor"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Instructor (Optional)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="12dp">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Credit Hours"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etInstructor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etCredits"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Description (Optional)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="12dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Semester"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
-        android:textColor="?attr/colorPrimary"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="?attr/materialCardViewOutlinedStyle"
-        app:cardCornerRadius="8dp"
-        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/tvSemesterLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Semester"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
 
-        <Spinner
-            android:id="@+id/spinnerSemester"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSemester"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp" />
-    </com.google.android.material.card.MaterialCardView>
+            style="?attr/materialCardViewOutlinedStyle"
+            app:cardCornerRadius="8dp"
+            android:layout_marginBottom="12dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Grade Information (Optional)"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
-        android:textColor="?attr/colorPrimary"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"/>
+            <Spinner
+                android:id="@+id/spinnerSemester"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="?attr/materialCardViewOutlinedStyle"
-        app:cardCornerRadius="8dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grade Information (Optional)"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
 
-        <Spinner
-            android:id="@+id/spinnerGrade"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp" />
-    </com.google.android.material.card.MaterialCardView>
+            style="?attr/materialCardViewOutlinedStyle"
+            app:cardCornerRadius="8dp">
 
-    <TextView
-        android:id="@+id/tvGradePointsDisplay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textAppearance="?attr/textAppearanceLabelMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:text="Grade Points: 0.0" />
+            <Spinner
+                android:id="@+id/spinnerGrade"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.card.MaterialCardView>
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tvGradePointsDisplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:text="Grade Points: 0.0" />
+
+    </LinearLayout>
+</ScrollView>

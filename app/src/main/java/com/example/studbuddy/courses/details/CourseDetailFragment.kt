@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.NavHostFragment
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.ui.setupWithNavController
 import com.example.studbuddy.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -43,5 +44,10 @@ class CourseDetailFragment : Fragment() {
 
         val bottomNav = view.findViewById<BottomNavigationView>(R.id.courseBottomNavigation)
         bottomNav.setupWithNavController(navController)
+
+        // Dynamically update the host toolbar title based on child destination
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            (activity as? AppCompatActivity)?.supportActionBar?.title = destination.label
+        }
     }
 }

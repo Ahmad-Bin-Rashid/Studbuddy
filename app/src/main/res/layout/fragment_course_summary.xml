@@ -75,11 +75,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Semester"
+                        android:paddingRight="10dp"
+                        android:text="Semester:"
                         android:textAppearance="?attr/textAppearanceLabelLarge" />
 
                     <TextView
                         android:id="@+id/tvSemester"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:textAlignment="viewEnd"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
@@ -89,7 +92,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Grade / GP"
+                        android:text="Grade:"
                         android:textAppearance="?attr/textAppearanceLabelLarge" />
 
                     <TextView

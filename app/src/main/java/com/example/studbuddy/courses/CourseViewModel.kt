@@ -85,30 +85,13 @@ class CourseViewModel @Inject constructor(
 
     fun addCourse(course: Course) {
         viewModelScope.launch {
-            repository.addCourse(course)
-            uiState.value.semester?.let { updateSemesterGpa(it.id) }
+            repository.addCourseWithGpaUpdate(course)
         }
     }
 
     fun updateCourse(course: Course) {
         viewModelScope.launch {
-            repository.updateCourse(course)
-            uiState.value.semester?.let { updateSemesterGpa(it.id) }
-        }
-    }
-
-    private suspend fun updateSemesterGpa(id: String) {
-        val currentSemester = repository.getAllSemestersFlow().first().find { it.id == id } ?: return
-        val currentCourses = repository.getCoursesBySemester(id)
-        
-        val coursesWithGrades = currentCourses.filter { it.grade != null }
-        val totalPoints = coursesWithGrades.sumOf { it.gradePoints }
-        val totalCredits = coursesWithGrades.sumOf { it.creditHours }
-        
-        val calculatedGpa = if (totalCredits > 0) totalPoints / totalCredits else null
-        
-        if (calculatedGpa != currentSemester.gpa) {
-            repository.updateSemester(currentSemester.copy(gpa = calculatedGpa))
+            repository.updateCourseWithGpaUpdate(course)
         }
     }
 }

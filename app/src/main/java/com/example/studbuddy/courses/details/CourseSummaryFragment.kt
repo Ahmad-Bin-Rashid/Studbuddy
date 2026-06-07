@@ -17,7 +17,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.*
-import android.widget.TextView
+import android.text.Editable
+import android.text.TextWatcher
+import com.google.android.material.textfield.TextInputLayout
 
 @AndroidEntryPoint
 class CourseSummaryFragment : Fragment() {
@@ -143,13 +145,20 @@ class CourseSummaryFragment : Fragment() {
 
     private fun showEditCourseDialog(course: Course) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_course, null)
+        val tilName = dialogView.findViewById<TextInputLayout>(R.id.tilCourseName)
         val etName = dialogView.findViewById<EditText>(R.id.etCourseName)
         val etDescription = dialogView.findViewById<EditText>(R.id.etDescription)
         val etInstructor = dialogView.findViewById<EditText>(R.id.etInstructor)
+        val tilCredits = dialogView.findViewById<TextInputLayout>(R.id.tilCredits)
         val etCredits = dialogView.findViewById<EditText>(R.id.etCredits)
         val spinnerGrade = dialogView.findViewById<Spinner>(R.id.spinnerGrade)
         val spinnerSemester = dialogView.findViewById<Spinner>(R.id.spinnerSemester)
         val tvGpDisplay = dialogView.findViewById<TextView>(R.id.tvGradePointsDisplay)
+
+        // Hide semester spinner during edit as requested
+        spinnerSemester.visibility = View.GONE
+        dialogView.findViewById<View>(R.id.cardSemester).visibility = View.GONE
+        dialogView.findViewById<View>(R.id.tvSemesterLabel).visibility = View.GONE
 
         etName.setText(course.name)
         etDescription.setText(course.description)
@@ -174,47 +183,77 @@ class CourseSummaryFragment : Fragment() {
         val semesterIndex = semesters.indexOfFirst { it.id == course.semesterId }
         if (semesterIndex != -1) spinnerSemester.setSelection(semesterIndex)
 
+        fun updateGpDisplay() {
+            val selectedGrade = spinnerGrade.selectedItem?.toString() ?: "Select Grade"
+            val basePoints = gradeMap[selectedGrade] ?: -1.0
+            val credits = etCredits.text.toString().toIntOrNull() ?: 0
+            
+            if (basePoints >= 0 && credits > 0) {
+                tvGpDisplay.text = "Grade Points: ${String.format(Locale.getDefault(), "%.2f", basePoints * credits)}"
+            } else {
+                tvGpDisplay.text = "Grade Points: 0.00"
+            }
+        }
+
+        etCredits.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateGpDisplay()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         spinnerGrade.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedGrade = grades[position]
-                val basePoints = gradeMap[selectedGrade] ?: -1.0
-                val credits = etCredits.text.toString().toIntOrNull() ?: 0
-                
-                if (basePoints >= 0 && credits > 0) {
-                    tvGpDisplay.text = "Grade Points: ${String.format(Locale.getDefault(), "%.2f", basePoints * credits)}"
-                } else {
-                    tvGpDisplay.text = "Grade Points: 0.00"
-                }
+                updateGpDisplay()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle("Edit Course")
             .setView(dialogView)
-            .setPositiveButton(R.string.save_button) { _, _ ->
-                val name = etName.text.toString().trim()
-                val description = etDescription.text.toString().trim()
-                val instructor = etInstructor.text.toString().trim()
-                val credits = etCredits.text.toString().toIntOrNull() ?: 0
-                val selectedGrade = spinnerGrade.selectedItem.toString()
-                val basePoints = gradeMap[selectedGrade] ?: -1.0
-                val selectedSemester = semesters[spinnerSemester.selectedItemPosition]
-
-                if (name.isNotEmpty() && credits > 0) {
-                    val gradePoints = if (basePoints >= 0) basePoints * credits else 0.0
-                    viewModel.updateCourse(course.copy(
-                        name = name,
-                        description = if (description.isEmpty()) null else description,
-                        instructor = if (instructor.isEmpty()) null else instructor,
-                        creditHours = credits,
-                        grade = if (basePoints >= 0) selectedGrade else null,
-                        gradePoints = gradePoints,
-                        semesterId = selectedSemester.id
-                    ))
-                }
-            }
+            .setPositiveButton(R.string.save_button, null)
             .setNegativeButton(R.string.cancel_button, null)
-            .show()
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val name = etName.text.toString().trim()
+            val description = etDescription.text.toString().trim()
+            val instructor = etInstructor.text.toString().trim()
+            val credits = etCredits.text.toString().toIntOrNull() ?: 0
+            val selectedGrade = spinnerGrade.selectedItem.toString()
+            val basePoints = gradeMap[selectedGrade] ?: -1.0
+            
+            var isValid = true
+            if (name.isEmpty()) {
+                tilName.error = "Course name is required"
+                isValid = false
+            } else {
+                tilName.error = null
+            }
+
+            if (credits <= 0) {
+                tilCredits.error = "Enter valid credit hours"
+                isValid = false
+            } else {
+                tilCredits.error = null
+            }
+
+            if (isValid) {
+                val gradePoints = if (basePoints >= 0) basePoints * credits else 0.0
+                viewModel.updateCourse(course.copy(
+                    name = name,
+                    description = if (description.isEmpty()) null else description,
+                    instructor = if (instructor.isEmpty()) null else instructor,
+                    creditHours = credits,
+                    grade = if (basePoints >= 0) selectedGrade else null,
+                    gradePoints = gradePoints
+                ))
+                dialog.dismiss()
+            }
+        }
     }
 }

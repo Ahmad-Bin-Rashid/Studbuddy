@@ -54,15 +54,14 @@ class CourseSummaryViewModel @Inject constructor(
     fun deleteCourse(onComplete: () -> Unit) {
         viewModelScope.launch {
             val course = uiState.value.course ?: return@launch
-            // Room CASCADE handle assignments, exams, attendance, and timetable
-            repository.deleteCourse(course)
+            repository.deleteCourseWithGpaUpdate(course)
             onComplete()
         }
     }
     
     fun updateCourse(course: Course) {
         viewModelScope.launch {
-            repository.updateCourse(course)
+            repository.updateCourseWithGpaUpdate(course)
         }
     }
 }

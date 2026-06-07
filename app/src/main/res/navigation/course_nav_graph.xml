@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/courseSummaryFragment"
         android:name="com.example.studbuddy.courses.details.CourseSummaryFragment"
-        android:label="Course Summary"
+        android:label="Course Details"
         tools:layout="@layout/fragment_course_summary">
         <argument
             android:name="courseId"
