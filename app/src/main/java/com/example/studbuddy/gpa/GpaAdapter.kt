@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Course
 
-class GpaAdapter(private val courses: MutableList<Course>) :
-    RecyclerView.Adapter<GpaAdapter.GpaViewHolder>() {
+class GpaAdapter(
+    private val courses: MutableList<Course>,
+    private val onCourseClick: (Course) -> Unit
+) : RecyclerView.Adapter<GpaAdapter.GpaViewHolder>() {
 
     class GpaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvName: TextView = view.findViewById(R.id.tvCourseName)
@@ -30,6 +32,8 @@ class GpaAdapter(private val courses: MutableList<Course>) :
         holder.tvCredits.text = "Credits: ${course.creditHours}"
         holder.tvGrade.text = course.grade ?: "N/A"
         holder.tvPoints.text = "Points: ${String.format("%.2f", course.gradePoints)}"
+
+        holder.itemView.setOnClickListener { onCourseClick(course) }
     }
 
     override fun getItemCount(): Int = courses.size
