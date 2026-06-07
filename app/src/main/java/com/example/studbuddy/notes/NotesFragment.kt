@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.webkit.MimeTypeMap
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
@@ -14,14 +15,12 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Note
-import com.example.studbuddy.courses.details.CourseDetailViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +34,6 @@ import java.io.FileOutputStream
 class NotesFragment : Fragment() {
 
     private val viewModel: NotesViewModel by viewModels()
-    private val sharedViewModel: CourseDetailViewModel by hiltNavGraphViewModels(R.id.course_nav_graph)
     private lateinit var adapter: NotesAdapter
     private lateinit var progressBar: ProgressBar
     private lateinit var layoutEmpty: View
@@ -67,6 +65,8 @@ class NotesFragment : Fragment() {
         )
         recyclerView.adapter = adapter
 
+        getCourseId()?.let { viewModel.setManualCourseId(it) }
+
         setupMenu()
         observeViewModel()
     }
@@ -94,14 +94,6 @@ class NotesFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedViewModel.courseId.collect { id ->
-                    if (id != null) viewModel.setManualCourseId(id)
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     adapter.submitList(state.notes)
@@ -109,6 +101,10 @@ class NotesFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun getCourseId(): String? {
+        return arguments?.getString("courseId") ?: parentFragment?.parentFragment?.arguments?.getString("courseId")
     }
 
     private fun updateEmptyState(isEmpty: Boolean) {
@@ -125,7 +121,7 @@ class NotesFragment : Fragment() {
     }
 
     private fun showAddNoteDialog(uri: Uri) {
-        val courseId = sharedViewModel.courseId.value
+        val courseId = getCourseId()
         if (courseId == null) {
             Toast.makeText(requireContext(), "Error: Course context lost", Toast.LENGTH_SHORT).show()
             return
@@ -178,7 +174,7 @@ class NotesFragment : Fragment() {
 
             if (result.first) {
                 val type = requireContext().contentResolver.getType(uri) ?: "unknown"
-                val courseId = sharedViewModel.courseId.value
+                val courseId = getCourseId()
                 if (courseId != null) {
                     viewModel.addNote(title, result.second, type, result.third, courseId)
                 } else {
@@ -200,14 +196,25 @@ class NotesFragment : Fragment() {
             }
             
             val uri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
+            val mimeType = resolveMimeType(note)
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, note.fileType)
+                setDataAndType(uri, mimeType)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, "Open with"))
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "No app found to open this file", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun resolveMimeType(note: Note): String {
+        if (note.fileType.isNotBlank() && note.fileType != "unknown") {
+            return note.fileType
+        }
+
+        val extension = File(note.localPath).extension.lowercase()
+        val mapped = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        return mapped ?: "*/*"
     }
 
     private fun getFileName(uri: Uri): String {
