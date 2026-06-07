@@ -198,8 +198,7 @@ class CoursesFragment : Fragment() {
         dialogView.findViewById<View>(R.id.tvSemesterLabel).visibility = View.GONE
 
         val grades = gradeMap.keys.toList()
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, grades)
         spinnerGrade.adapter = adapter
 
         existingCourse?.let {

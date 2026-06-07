@@ -123,7 +123,7 @@ class AttendanceFragment : Fragment() {
         val rgStatus = dialogView.findViewById<RadioGroup>(R.id.rgStatus)
 
         val courses = viewModel.uiState.value.courses
-        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, courses.map { it.name })
 
         if (existingRecord != null) {
             val record = existingRecord

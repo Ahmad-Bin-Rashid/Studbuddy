@@ -167,8 +167,7 @@ class CourseSummaryFragment : Fragment() {
 
         // Setup Grade Spinner
         val grades = gradeMap.keys.toList()
-        val gradeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
-        gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val gradeAdapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, grades)
         spinnerGrade.adapter = gradeAdapter
         val gradeIndex = grades.indexOf(course.grade ?: "Select Grade")
         if (gradeIndex != -1) spinnerGrade.setSelection(gradeIndex)
@@ -177,8 +176,7 @@ class CourseSummaryFragment : Fragment() {
         // Setup Semester Spinner
         val semesters = viewModel.allSemesters.value
         val semesterNames = semesters.map { it.name }
-        val semesterAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, semesterNames)
-        semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val semesterAdapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, semesterNames)
         spinnerSemester.adapter = semesterAdapter
         val semesterIndex = semesters.indexOfFirst { it.id == course.semesterId }
         if (semesterIndex != -1) spinnerSemester.setSelection(semesterIndex)

@@ -117,10 +117,10 @@ class TimetableFragment : Fragment() {
         val etRoom = dialogView.findViewById<EditText>(R.id.etRoom)
 
         val courses = viewModel.uiState.value.courses
-        spinnerCourses.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, courses.map { it.name })
+        spinnerCourses.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, courses.map { it.name })
 
         val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-        spinnerDay.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, days)
+        spinnerDay.adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, days)
 
         var startTime = existing?.startTime ?: "09:00"
         var endTime = existing?.endTime ?: "10:00"

@@ -3,6 +3,7 @@ package com.example.studbuddy.attendance
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.AttendanceRecord
 import com.example.studbuddy.core.models.Course
+import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.repository.StudBuddyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -12,6 +13,7 @@ import javax.inject.Inject
 data class AttendanceUiState(
     val courses: List<Course> = emptyList(),
     val attendance: List<AttendanceRecord> = emptyList(),
+    val activeSemester: Semester? = null,
     val isLoading: Boolean = false
 )
 
@@ -23,11 +25,17 @@ class AttendanceViewModel @Inject constructor(private val repository: StudBuddyR
     val uiState: StateFlow<AttendanceUiState> = combine(
         repository.getCoursesFlow(),
         repository.getAttendanceFlow(),
+        repository.getActiveSemesterFlow(),
         _isLoading
-    ) { courses, attendance, loading ->
-        AttendanceUiState(courses, attendance, loading)
+    ) { courses, attendance, activeSemester, loading ->
+        val filteredCourses = if (activeSemester != null) {
+            courses.filter { it.semesterId == activeSemester.id }
+        } else {
+            courses
+        }
+        AttendanceUiState(filteredCourses, attendance, activeSemester, loading)
     }.onEach {
-        if (it.courses.isNotEmpty() || it.attendance.isNotEmpty()) {
+        if (it.courses.isNotEmpty() || it.attendance.isNotEmpty() || it.activeSemester != null) {
             _isLoading.value = false
         }
     }.stateIn(

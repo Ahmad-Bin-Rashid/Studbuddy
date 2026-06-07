@@ -28,7 +28,12 @@ class AssignmentsViewModel @Inject constructor(private val repository: StudBuddy
         repository.getActiveSemesterFlow(),
         _isLoading
     ) { assignments, courses, activeSemester, loading ->
-        AssignmentsUiState(assignments, courses, activeSemester, loading)
+        val filteredCourses = if (activeSemester != null) {
+            courses.filter { it.semesterId == activeSemester.id }
+        } else {
+            courses
+        }
+        AssignmentsUiState(assignments, filteredCourses, activeSemester, loading)
     }.onEach {
         if (it.assignments.isNotEmpty() || it.courses.isNotEmpty() || it.activeSemester != null) {
             _isLoading.value = false

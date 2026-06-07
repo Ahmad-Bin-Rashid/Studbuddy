@@ -106,14 +106,12 @@ class GpaFragment : Fragment() {
 
     private fun showGradeDialog(course: Course) {
         val grades = gradeMap.keys.toList()
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, grades)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_spinner_course, grades)
 
         val spinner = Spinner(requireContext()).apply {
             this.adapter = adapter
             val index = grades.indexOf(course.grade ?: "Select Grade")
             if (index != -1) setSelection(index)
-            setPadding(48, 32, 48, 32)
         }
 
         MaterialAlertDialogBuilder(requireContext())

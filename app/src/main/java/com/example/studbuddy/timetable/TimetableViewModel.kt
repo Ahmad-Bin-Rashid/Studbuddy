@@ -2,6 +2,7 @@ package com.example.studbuddy.timetable
 
 import androidx.lifecycle.*
 import com.example.studbuddy.core.models.Course
+import com.example.studbuddy.core.models.Semester
 import com.example.studbuddy.core.models.TimetableEntry
 import com.example.studbuddy.core.repository.StudBuddyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import javax.inject.Inject
 data class TimetableUiState(
     val timetable: List<TimetableEntry> = emptyList(),
     val courses: List<Course> = emptyList(),
+    val activeSemester: Semester? = null,
     val isLoading: Boolean = false
 )
 
@@ -23,11 +25,20 @@ class TimetableViewModel @Inject constructor(private val repository: StudBuddyRe
     val uiState: StateFlow<TimetableUiState> = combine(
         repository.getTimetableFlow(),
         repository.getCoursesFlow(),
+        repository.getActiveSemesterFlow(),
         _isLoading
-    ) { timetable, courses, loading ->
-        TimetableUiState(timetable, courses, loading)
+    ) { timetable, courses, activeSemester, loading ->
+        val filteredCourses = if (activeSemester != null) {
+            courses.filter { it.semesterId == activeSemester.id }
+        } else {
+            courses
+        }
+        val courseIds = filteredCourses.map { it.id }.toSet()
+        val filteredTimetable = timetable.filter { courseIds.contains(it.courseId) }
+
+        TimetableUiState(filteredTimetable, filteredCourses, activeSemester, loading)
     }.onEach {
-        if (it.timetable.isNotEmpty() || it.courses.isNotEmpty()) {
+        if (it.timetable.isNotEmpty() || it.courses.isNotEmpty() || it.activeSemester != null) {
             _isLoading.value = false
         }
     }.stateIn(
