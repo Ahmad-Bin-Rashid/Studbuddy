@@ -6,14 +6,12 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <!-- Course List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCourses"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@id/btnAddCourse"
-        app:layout_constraintTop_toTopOf="parent"
+        android:clipToPadding="false"
         tools:listitem="@layout/item_course" />
 
     <!-- Empty State -->
@@ -21,9 +19,8 @@
         android:id="@+id/layoutEmpty"
         layout="@layout/layout_empty_state"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/btnAddCourse"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
     <!-- Loading State -->
     <ProgressBar
@@ -37,13 +34,14 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Add Course Button -->
-    <com.google.android.material.button.MaterialButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAddCourse"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:text="@string/add_course_button"
-        style="@style/Widget.Material3.Button"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:contentDescription="Add Course"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

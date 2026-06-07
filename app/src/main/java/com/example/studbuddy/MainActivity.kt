@@ -18,6 +18,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.NavOptions
+import androidx.navigation.ui.NavigationUI
 import com.example.studbuddy.core.notifications.NotificationHelper
 import com.example.studbuddy.core.notifications.NotificationType
 import com.google.android.material.navigation.NavigationView
@@ -78,6 +80,47 @@ class MainActivity : AppCompatActivity() {
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+        
+        // Custom listener to ensure clicking "Courses" or "Semesters" in sidebar
+        // always resets the view to the default/active context (clearing arguments).
+        navView.setNavigationItemSelectedListener { item ->
+            val handled = when (item.itemId) {
+                R.id.coursesFragment -> {
+                    // Navigate without arguments to show active semester
+                    navController.navigate(R.id.coursesFragment, null, NavOptions.Builder()
+                        .setLaunchSingleTop(true)
+                        .setRestoreState(true)
+                        .setPopUpTo(navController.graph.startDestinationId, false, true)
+                        .build())
+                    true
+                }
+                R.id.semesterFragment -> {
+                    navController.navigate(R.id.semesterFragment, null, NavOptions.Builder()
+                        .setLaunchSingleTop(true)
+                        .setRestoreState(true)
+                        .setPopUpTo(navController.graph.startDestinationId, false, true)
+                        .build())
+                    true
+                }
+                else -> {
+                    NavigationUI.onNavDestinationSelected(item, navController)
+                }
+            }
+            
+            if (handled) {
+                // Ensure the item is checked in the UI
+                navView.setCheckedItem(item.itemId)
+                drawerLayout.closeDrawers()
+            }
+            handled
+        }
+
+        // We still call this but it's partially overridden by our listener above
+        // This is mainly to keep sync for back-press or direct navigate() calls
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            // This ensures sidebar selection stays in sync even if navigation happened elsewhere
+            navView.setCheckedItem(destination.id)
+        }
 
         val headerView = navView.getHeaderView(0)
         val imgProfile = headerView.findViewById<ShapeableImageView>(R.id.imgHeaderProfile)

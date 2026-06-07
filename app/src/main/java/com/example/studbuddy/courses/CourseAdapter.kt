@@ -1,5 +1,6 @@
 package com.example.studbuddy.courses
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Course
 import com.example.studbuddy.core.models.Semester
+import com.google.android.material.card.MaterialCardView
 
 class CourseAdapter(
     private val courses: MutableList<Course>,
@@ -15,8 +17,12 @@ class CourseAdapter(
 ) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
 
     private var currentSemester: Semester? = null
+    private val lightColors = listOf(
+        "#E3F2FD", "#F1F8E9", "#FFF3E0", "#F3E5F5", "#E8EAF6", "#E0F2F1", "#F9FBE7", "#FFFDE7"
+    )
 
     class CourseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val card: MaterialCardView = view.findViewById(R.id.cardCourse)
         val tvCourseName: TextView = view.findViewById(R.id.tvCourseName)
         val tvCourseInstructor: TextView = view.findViewById(R.id.tvCourseInstructor)
         val tvSemester: TextView = view.findViewById(R.id.tvSemester)
@@ -24,6 +30,7 @@ class CourseAdapter(
         val tvMarks: TextView = view.findViewById(R.id.tvMarks)
         val tvGrade: TextView = view.findViewById(R.id.tvGrade)
         val tvGradePoints: TextView = view.findViewById(R.id.tvGradePoints)
+        val stripe: View = view.findViewById(R.id.stripe)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
@@ -39,17 +46,21 @@ class CourseAdapter(
         holder.tvCourseInstructor.text = course.instructor ?: "No Instructor"
         holder.tvSemester.text = if (course.semesterId == currentSemester?.id) "Semester: ${currentSemester?.name}" else "Semester: Unknown"
         holder.tvCreditHours.text = "Credits: ${course.creditHours}"
-        holder.tvMarks.text = "Marks: ${String.format("%.1f", course.marks)}"
         
         if (course.grade != null) {
-            holder.tvGrade.text = "Grade: ${course.grade}"
+            holder.tvGrade.text = course.grade
             holder.tvGrade.visibility = View.VISIBLE
-            holder.tvGradePoints.text = "GP: ${String.format("%.2f", course.gradePoints)}"
-            holder.tvGradePoints.visibility = View.VISIBLE
+            holder.tvMarks.text = "GP: ${String.format("%.2f", course.gradePoints)}"
+            holder.tvMarks.visibility = View.VISIBLE
         } else {
             holder.tvGrade.visibility = View.GONE
-            holder.tvGradePoints.visibility = View.GONE
+            holder.tvMarks.visibility = View.GONE
         }
+
+        // Random light shade based on name hash to keep it consistent
+        val colorIndex = Math.abs(course.name.hashCode()) % lightColors.size
+        holder.card.setCardBackgroundColor(Color.parseColor(lightColors[colorIndex]))
+        holder.stripe.visibility = View.GONE
 
         holder.itemView.setOnClickListener { onCourseClick(course) }
     }

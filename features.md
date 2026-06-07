@@ -22,15 +22,18 @@ This document outlines the prioritized steps to enhance the feature set of StudB
 
 ## Phase 2: Enhance Courses Page
 
-### Step 1:
+### Step 1: 
+- **Courses Page**: Whenever we click on semester, the courses page will open showing courses of that semester. the courses page button in sidebar will open courses page for active semester.
+
+### Step 2:
 - **Course Card**: Each Course card which will have the following components (alter course model if needed): 
   - Heading of Course name. Below that credit hours. Below that its grade point and grade (if available otherwise don't show this)
   - Random light shade of color so that they look distinguishable. 
-### Step 2:
+### Step 3:
 - **Cards Sorting**: Add 3-dots button on top right header of the page. By clicking that it should open a menu having option of Sort in it. On clicking sort it should open two radio group options menu
   - 1st group: By Name (to sort alphabetically), By Creation time (which should sort courses cards by time they created), By Credit Hours (same credit hours will be sorted by creation time)
   - 2nd group: Ascending, Descending
-### Step 3:
+### Step 4:
 - **Add plus button**: At the bottom right, add floating plus button by which we can add courses.
 
 ## Phase 3: Implement pages for each Course and Notes module

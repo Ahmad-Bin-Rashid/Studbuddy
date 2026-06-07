@@ -28,5 +28,6 @@ data class Course(
     val marks: Double,
     val grade: String?,
     val gradePoints: Double,
+    val createdAt: Long = System.currentTimeMillis(),
     val lastModified: Long = System.currentTimeMillis()
 )

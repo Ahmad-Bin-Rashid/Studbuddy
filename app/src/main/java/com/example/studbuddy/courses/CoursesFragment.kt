@@ -1,11 +1,11 @@
 package com.example.studbuddy.courses
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.Course
+import com.example.studbuddy.semesters.SortOrder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,16 +67,64 @@ class CoursesFragment : Fragment() {
         
         setupViews(view)
         setupRecyclerView(view)
+        setupMenu()
         observeViewModel()
     }
 
+    private fun setupMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.course_sort_menu, menu)
+                
+                val state = viewModel.uiState.value
+                val sortId = when (state.sortBy) {
+                    CourseSortBy.NAME -> R.id.sort_courses_by_name
+                    CourseSortBy.CREATION -> R.id.sort_courses_by_creation
+                    CourseSortBy.CREDITS -> R.id.sort_courses_by_credits
+                }
+                menu.findItem(sortId)?.isChecked = true
+                menu.findItem(if (state.sortOrder == SortOrder.ASC) R.id.order_courses_asc else R.id.order_courses_desc)?.isChecked = true
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.sort_courses_by_name -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortBy(CourseSortBy.NAME)
+                        true
+                    }
+                    R.id.sort_courses_by_creation -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortBy(CourseSortBy.CREATION)
+                        true
+                    }
+                    R.id.sort_courses_by_credits -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortBy(CourseSortBy.CREDITS)
+                        true
+                    }
+                    R.id.order_courses_asc -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortOrder(SortOrder.ASC)
+                        true
+                    }
+                    R.id.order_courses_desc -> {
+                        menuItem.isChecked = true
+                        viewModel.setSortOrder(SortOrder.DESC)
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
     private fun setupViews(view: View) {
-        view.findViewById<Button>(R.id.btnAddCourse).setOnClickListener {
+        view.findViewById<View>(R.id.btnAddCourse).setOnClickListener {
             val semester = viewModel.uiState.value.semester
             if (semester == null) {
-                // If no semester context (e.g. accessed from sidebar without active semester)
                 Toast.makeText(requireContext(), "Please setup or select a semester first", Toast.LENGTH_SHORT).show()
-                // Optionally navigate to semester page
                 findNavController().navigate(R.id.semesterFragment)
             } else {
                 showCourseDialog(null)
