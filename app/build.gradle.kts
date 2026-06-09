@@ -36,6 +36,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/DEPENDENCIES"
+        }
+    }
 }
 
 dependencies {
@@ -70,8 +75,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
-
     // Play Services Auth
     implementation(libs.play.services.auth)
     implementation(libs.coil)

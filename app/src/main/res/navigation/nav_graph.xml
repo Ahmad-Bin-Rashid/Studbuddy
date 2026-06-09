@@ -90,8 +90,8 @@
             android:id="@+id/action_settingsFragment_to_appearanceSettingsFragment"
             app:destination="@id/appearanceSettingsFragment" />
         <action
-            android:id="@+id/action_settingsFragment_to_cloudSyncFragment"
-            app:destination="@id/cloudSyncFragment" />
+            android:id="@+id/action_settingsFragment_to_backupFragment"
+            app:destination="@id/backupFragment" />
     </fragment>
 
     <fragment
@@ -107,9 +107,9 @@
         tools:layout="@layout/fragment_appearance_settings" />
 
     <fragment
-        android:id="@+id/cloudSyncFragment"
-        android:name="com.example.studbuddy.settings.CloudSyncFragment"
-        android:label="Cloud Sync"
-        tools:layout="@layout/fragment_cloud_sync" />
+        android:id="@+id/backupFragment"
+        android:name="com.example.studbuddy.settings.BackupFragment"
+        android:label="Backup &amp; Restore"
+        tools:layout="@layout/fragment_backup" />
 
 </navigation>

@@ -10,13 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import com.google.android.gms.common.api.Scope
 import com.example.studbuddy.R
 import com.example.studbuddy.core.models.AuthStatus
-import com.example.studbuddy.core.workers.SyncWorker
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
@@ -137,6 +133,7 @@ class ProfileFragment : Fragment() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
+            .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
             .build()
 
         val googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
@@ -160,15 +157,6 @@ class ProfileFragment : Fragment() {
                             authStatus = AuthStatus.SIGNED_IN
                         )
                     )
-                    // Trigger an immediate sync now that the user is signed in
-                    val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
-                    WorkManager.getInstance(requireContext()).enqueue(syncRequest)
                     Toast.makeText(context, "Welcome ${firebaseUser.displayName}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {

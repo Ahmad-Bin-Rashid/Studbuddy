@@ -153,8 +153,14 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE courseId = :courseId ORDER BY createdAt DESC")
     fun getNotesByCourseFlow(courseId: String): Flow<List<Note>>
 
+    @Query("SELECT * FROM notes")
+    suspend fun getAll(): List<Note>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: Note)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(notes: List<Note>)
 
     @Delete
     suspend fun delete(note: Note)

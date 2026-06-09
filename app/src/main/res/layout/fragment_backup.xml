@@ -35,13 +35,13 @@
                         android:layout_height="32dp"
                         android:src="@drawable/ic_sync_24"
                         app:tint="?attr/colorPrimary"
-                        android:contentDescription="Cloud sync icon" />
+                        android:contentDescription="Backup icon" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
-                        android:text="Cloud Sync"
+                        android:text="Google Drive Backup"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorPrimary" />
 
@@ -51,22 +51,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Your data is securely synced to Firebase so it stays up-to-date across all your devices."
+                    android:text="Backup your semesters, courses, attendance, assignments, and exams directly to your Google Account's hidden AppData folder."
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Sync runs automatically every hour in the background. You can also trigger it manually below."
+                    android:layout_marginTop="8dp"
+                    android:text="Note: Local attachments (PDFs, images) attached in Notes are stored on your local device only and are not uploaded to Google Drive."
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textStyle="italic" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Sync Status Card -->
+        <!-- Backup Status Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -83,7 +84,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sync Status"
+                    android:text="Status Overview"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary" />
 
@@ -106,7 +107,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:text="Ready to sync"
+                        android:text="Ready to backup or restore"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -131,14 +132,14 @@
                         android:layout_height="18dp"
                         android:src="@drawable/ic_history_24"
                         app:tint="?attr/colorOnSurfaceVariant"
-                        android:contentDescription="Last sync icon" />
+                        android:contentDescription="Last backup icon" />
 
                     <TextView
                         android:id="@+id/txtLastSyncTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:text="Last synced: Never"
+                        android:text="Last backed up: Never"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -147,17 +148,30 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Sync Now Button -->
+        <!-- Actions -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSyncNow"
+            android:id="@+id/btnBackupNow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Sync Now"
+            android:text="Backup to Drive"
             android:padding="14dp"
             style="@style/Widget.Material3.Button"
             app:cornerRadius="12dp"
             app:icon="@drawable/ic_sync_24"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRestoreNow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Restore from Drive"
+            android:padding="14dp"
+            style="@style/Widget.Material3.Button.TonalButton"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_history_24"
             app:iconGravity="textStart"
             app:iconPadding="8dp" />
 

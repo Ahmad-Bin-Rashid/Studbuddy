@@ -5,7 +5,7 @@ import com.example.studbuddy.core.SettingsManager
 import com.example.studbuddy.core.UserManager
 import com.example.studbuddy.core.db.StudBuddyDatabase
 import com.example.studbuddy.core.repository.StudBuddyRepository
-import com.example.studbuddy.core.repository.SyncRepository
+import com.example.studbuddy.core.repository.DriveBackupRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,8 +25,12 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideSyncRepository(database: StudBuddyDatabase, settingsManager: SettingsManager): SyncRepository {
-        return SyncRepository(database, settingsManager)
+    fun provideDriveBackupRepository(
+        @ApplicationContext context: Context,
+        database: StudBuddyDatabase,
+        settingsManager: SettingsManager
+    ): DriveBackupRepository {
+        return DriveBackupRepository(context, database, settingsManager)
     }
 
     @Provides

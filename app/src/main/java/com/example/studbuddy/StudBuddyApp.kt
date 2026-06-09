@@ -8,9 +8,7 @@ import com.example.studbuddy.core.UserManager
 import com.example.studbuddy.core.db.StudBuddyDatabase
 import com.example.studbuddy.core.models.User
 import com.example.studbuddy.core.repository.StudBuddyRepository
-import com.example.studbuddy.core.repository.SyncRepository
 import com.example.studbuddy.core.workers.DailyMaintenanceWorker
-import com.example.studbuddy.core.workers.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
@@ -40,25 +38,10 @@ class StudBuddyApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         scheduleDailyMaintenance()
-        scheduleSync()
         initializeUser()
     }
 
-    private fun scheduleSync() {
-        val syncWork = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
 
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "data_sync",
-            ExistingPeriodicWorkPolicy.KEEP,
-            syncWork
-        )
-    }
 
     private fun initializeUser() {
         applicationScope.launch {
